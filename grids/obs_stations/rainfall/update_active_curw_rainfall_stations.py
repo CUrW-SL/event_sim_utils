@@ -1,9 +1,17 @@
+#!/home/uwcc-admin/event_sim_utils/venv/bin/python3
+
 import csv
 import traceback
-import pymysql
+import os
+import sys
+import getopt
+from datetime import datetime, timedelta
 
 from db_adapter.base import get_Pool, destroy_Pool
-from db_adapter.constants import CURW_OBS_USERNAME, CURW_OBS_DATABASE, CURW_OBS_HOST, CURW_OBS_PASSWORD, CURW_OBS_PORT
+from db_adapter.constants import set_db_config_file_path
+from db_adapter.constants import connection as con_params
+
+ROOT_DIR = '/home/uwcc-admin/event_sim_utils'
 
 
 def create_csv(file_name, data):
@@ -19,14 +27,14 @@ def create_csv(file_name, data):
         writer.writerows(data)
 
 
-def extract_active_curw_obs_rainfall_stations():
+def extract_active_curw_obs_rainfall_stations(start_time, end_time):
     """
         Extract currently active (active within last week) rainfall obs stations
         :return:
         """
     # Connect to the database
-    pool = get_Pool(host=CURW_OBS_HOST, port=CURW_OBS_PORT, user=CURW_OBS_USERNAME, password=CURW_OBS_PASSWORD,
-                    db=CURW_OBS_DATABASE)
+    pool = get_Pool(host=con_params.CURW_OBS_HOST, port=con_params.CURW_OBS_PORT, user=con_params.CURW_OBS_USERNAME,
+                    password=con_params.CURW_OBS_PASSWORD, db=con_params.CURW_OBS_DATABASE)
 
     obs_stations = [['hash_id', 'station_id', 'station_name', 'latitude', 'longitude']]
 
@@ -35,7 +43,7 @@ def extract_active_curw_obs_rainfall_stations():
     try:
 
         with connection.cursor() as cursor1:
-            cursor1.callproc(procname='getActiveRainfallObsStations')
+            cursor1.callproc('getActiveRfStationsAtGivenTime', (start_time, end_time))
             results = cursor1.fetchall()
 
             for result in results:
@@ -52,4 +60,54 @@ def extract_active_curw_obs_rainfall_stations():
         destroy_Pool(pool)
 
 
-extract_active_curw_obs_rainfall_stations()
+def usage():
+    usageText = """
+    ----------------------------------------------------------
+    Find active rainfall observation stations at a given time
+    ----------------------------------------------------------
+
+    Usage: ./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py [-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
+
+    -h  --help          Show usage
+    -s  --start_time    Rain timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 00:00:00, yesterday.
+    -e  --end_time      Rain timeseries end time (e.g: "2019-06-05 23:30:00"). Default is 00:00:00, tomorrow.
+    """
+    print(usageText)
+
+
+if __name__=="__main__":
+
+    set_db_config_file_path(os.path.join(ROOT_DIR, 'db_adapter_config.json'))
+
+    try:
+
+        start_time = None
+        end_time = None
+
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "h:s:e:",
+                                       ["help", "start_time=", "end_time="])
+        except getopt.GetoptError:
+            usage()
+            sys.exit(2)
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                usage()
+                sys.exit()
+            elif opt in ("-s", "--start_time"):
+                start_time = arg.strip()
+            elif opt in ("-e", "--end_time"):
+                end_time = arg.strip()
+
+        if start_time is None:
+            start_time = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+
+        if end_time is None:
+            end_time = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')
+
+        extract_active_curw_obs_rainfall_stations(start_time, end_time)
+
+    except Exception as e:
+        traceback.print_exc()
+    finally:
+        print("Process finished.")
