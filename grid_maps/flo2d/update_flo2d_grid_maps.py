@@ -1,4 +1,4 @@
-#!/home/uwcc-admin/event_sim_utils/venv/bin/python3
+#!/home/curw/event_sim_utils/venv/bin/python3
 
 import csv
 import operator
@@ -18,7 +18,7 @@ from db_adapter.curw_sim.grids import add_flo2d_raincell_grid_mappings, \
 from db_adapter.curw_sim.constants import FLO2D_250, FLO2D_150, FLO2D_30, FLO2D_150_V2
 
 flo2d_models_list = [FLO2D_250, FLO2D_150, FLO2D_150_V2]
-ROOT_DIR = '/home/uwcc-admin/event_sim_utils'
+ROOT_DIR = '/home/curw/event_sim_utils'
 
 
 def create_csv(file_name, data):

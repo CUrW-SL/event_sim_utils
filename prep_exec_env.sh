@@ -3,7 +3,7 @@
 echo `date`
 
 echo "Changing into ~/event_sim_utils"
-cd /home/uwcc-admin/event_sim_utils
+cd /home/curw/event_sim_utils
 echo "Inside `pwd`"
 
 

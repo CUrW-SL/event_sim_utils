@@ -1,4 +1,4 @@
-#!/home/uwcc-admin/event_sim_utils/venv/bin/python3
+#!/home/curw/event_sim_utils/venv/bin/python3
 
 import sys
 import getopt
@@ -24,7 +24,7 @@ from db_adapter.logger import logger
 
 
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-ROOT_DIR = '/home/uwcc-admin/event_sim_utils'
+ROOT_DIR = '/home/curw/event_sim_utils'
 
 
 def check_time_format(time, model):

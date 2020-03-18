@@ -1,4 +1,4 @@
-#!/home/uwcc-admin/event_sim_utils/venv/bin/python3
+#!/home/curw/event_sim_utils/venv/bin/python3
 
 import csv
 import traceback
@@ -11,7 +11,7 @@ from db_adapter.base import get_Pool, destroy_Pool
 from db_adapter.constants import set_db_config_file_path
 from db_adapter.constants import connection as con_params
 
-ROOT_DIR = '/home/uwcc-admin/event_sim_utils'
+ROOT_DIR = '/home/curw/event_sim_utils'
 
 
 def create_csv(file_name, data):
