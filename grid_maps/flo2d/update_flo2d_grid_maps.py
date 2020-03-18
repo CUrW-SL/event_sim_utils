@@ -103,7 +103,7 @@ def usage():
     Populate flo2d grid maps
     ---------------------------
 
-    Usage: ./grid_maps/flo2d/update_flo2d_grid_maps.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
+    Usage: ./grid_maps/flo2d/update_flo2d_grid_maps.py [-m flo2d_XXX][-g XXX] 
 
     -h  --help          Show usage
     -m  --model         FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.

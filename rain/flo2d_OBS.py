@@ -207,7 +207,7 @@ def usage():
     Populate rainfall Flo2D 250 & 150 :: OBS
     -----------------------------------------
 
-    Usage: ./rain/flo2d_OBS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
+    Usage: ./rain/flo2d_OBS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-g XXXX]
 
     -h  --help          Show usage
     -m  --model         FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
@@ -277,6 +277,15 @@ if __name__=="__main__":
             timestep = 15
         elif flo2d_model == FLO2D_150_V2:
             timestep = 15
+
+        # find actove curw weather stations during the specified time window
+        os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
+                  .format(start_time, end_time))
+
+        # prepare and populate flo2d grid maps
+        # 1. flo2d grids to weather stations
+        # 2. flo2d grids to d03 stations
+        os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
 
         print("{} : ####### Insert obs rainfall for FLO2D 250 grids".format(datetime.now()))
         update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
