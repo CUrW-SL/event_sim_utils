@@ -106,7 +106,7 @@ def usage():
     Usage: ./grid_maps/flo2d/update_flo2d_grid_maps.py [-m flo2d_XXX][-g XXX] 
 
     -h  --help          Show usage
-    -m  --model         FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
+    -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
     -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "MDPA".
     """
     print(usageText)
@@ -142,7 +142,7 @@ if __name__=="__main__":
             exit(0)
 
         if flo2d_model is not None and flo2d_model in ("flo2d_250", "flo2d_150", "flo2d_150_v2"):
-            flo2d_models_list = flo2d_model
+            flo2d_models_list = [flo2d_model]
 
         pool = get_Pool(host=con_params.CURW_SIM_HOST, port=con_params.CURW_SIM_PORT, user=con_params.CURW_SIM_USERNAME,
                         password=con_params.CURW_SIM_PASSWORD, db=con_params.CURW_SIM_DATABASE)

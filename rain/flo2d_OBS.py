@@ -210,7 +210,7 @@ def usage():
     Usage: ./rain/flo2d_OBS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-g XXXX]
 
     -h  --help          Show usage
-    -m  --model         FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
+    -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
     -s  --start_time    Rain timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:30:00, 3 days before today.
     -e  --end_time      Rain timeseries end time (e.g: "2019-06-05 23:30:00"). Default is 23:30:00, tomorrow.
     -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "MDPA".
