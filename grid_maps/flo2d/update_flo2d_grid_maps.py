@@ -1,8 +1,10 @@
+#!/home/uwcc-admin/event_sim_utils/venv/bin/python3
+
 import csv
 import operator
 import collections
 import traceback
-import os
+import os, getopt, sys
 
 from math import acos, cos, sin, radians
 
@@ -95,16 +97,55 @@ def find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv, obs_station
 # find_nearest_obs_stations_for_flo2d_stations('flo2d_30m.csv', 'curw_active_rainfall_obs_stations.csv')
 
 
+def usage():
+    usageText = """
+    ---------------------------
+    Populate flo2d grid maps
+    ---------------------------
+
+    Usage: ./grid_maps/flo2d/update_flo2d_grid_maps.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
+
+    -h  --help          Show usage
+    -m  --model         FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
+    -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "MDPA".
+    """
+    print(usageText)
+
+
 if __name__=="__main__":
 
     set_db_config_file_path(os.path.join(ROOT_DIR, 'db_adapter_config.json'))
 
     try:
 
+        flo2d_model = None
+        grid_tag = "MDPA"  # note - grid tag "TP" has not handled yet
+
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "h:m:g:",
+                                       ["help", "flo2d_model=", "grid_tag="])
+        except getopt.GetoptError:
+            usage()
+            sys.exit(2)
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                usage()
+                sys.exit()
+            elif opt in ("-m", "--flo2d_model"):
+                flo2d_model = arg.strip()
+            elif opt in ("-g", "--grid_tag"):
+                grid_tag = arg.strip()
+
+        if grid_tag == "MDPA":
+            grid_interpolation_method = GridInterpolationEnum.getAbbreviation(GridInterpolationEnum.MDPA)
+        else:
+            exit(0)
+
+        if flo2d_model is not None and flo2d_model in ("flo2d_250", "flo2d_150", "flo2d_150_v2"):
+            flo2d_models_list = flo2d_model
+
         pool = get_Pool(host=con_params.CURW_SIM_HOST, port=con_params.CURW_SIM_PORT, user=con_params.CURW_SIM_USERNAME,
                         password=con_params.CURW_SIM_PASSWORD, db=con_params.CURW_SIM_DATABASE)
-
-        grid_interpolation_method = GridInterpolationEnum.getAbbreviation(GridInterpolationEnum.MDPA)
 
         for flo2d_model in flo2d_models_list:
             print("Update {} grid mappings".format(flo2d_model))
