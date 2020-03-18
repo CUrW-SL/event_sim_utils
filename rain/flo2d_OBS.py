@@ -78,8 +78,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
         TS = Sim_Timeseries(pool=curw_sim_pool)
 
         # [hash_id, station_id, station_name, latitude, longitude]
-        active_obs_stations = read_csv('grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv')
-        flo2d_grids = read_csv('grids/flo2d/{}m.csv'.format(flo2d_model))  # [Grid_ ID, X(longitude), Y(latitude)]
+        active_obs_stations = read_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'))
+        flo2d_grids = read_csv(os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)))  # [Grid_ ID, X(longitude), Y(latitude)]
 
         stations_dict_for_obs = { }  # keys: obs station id , value: hash id
 

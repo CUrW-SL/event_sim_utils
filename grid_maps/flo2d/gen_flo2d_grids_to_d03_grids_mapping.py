@@ -103,8 +103,8 @@ if __name__=="__main__":
         for flo2d_model in flo2d_models_list:
             print("Update {} grid mappings".format(flo2d_model))
 
-            find_nearest_d03_station_for_flo2d_grids(flo2d_stations_csv='grids/flo2d/{}m.csv'.format(flo2d_model),
-                                                     d03_stations_csv='grids/wrf_d03/d03_stations.csv',
+            find_nearest_d03_station_for_flo2d_grids(flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
+                                                     d03_stations_csv=os.path.join(ROOT_DIR,'grids/wrf_d03/d03_stations.csv'),
                                                      flo2d_model=flo2d_model)
 
             # add_flo2d_raincell_grid_mappings(pool=pool, flo2d_model=flo2d_model, grid_interpolation=grid_interpolation_method,
