@@ -286,9 +286,9 @@ if __name__=="__main__":
         # prepare and populate flo2d grid maps
         # 1. flo2d grids to weather stations
         # 2. flo2d grids to d03 stations
-        os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
+        # os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
 
-        print("{} : ####### Insert obs rainfall for FLO2D 250 grids".format(datetime.now()))
+        print("{} : ####### Insert obs rainfall for {} grids".format(datetime.now(), flo2d_model))
         update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
                             timestep=timestep, start_time=start_time, end_time=end_time)
     except Exception as e:
