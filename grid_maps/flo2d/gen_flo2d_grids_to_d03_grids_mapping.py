@@ -87,7 +87,7 @@ def find_nearest_d03_station_for_flo2d_grids(flo2d_stations_csv, d03_stations_cs
         print(nearest_d03_station)
         nearest_d03_stations_list.append(nearest_d03_station)
 
-    create_csv('MDPA_{}_d03_stations_mapping.csv'.format(flo2d_model), nearest_d03_stations_list)
+    create_csv('{}/MDPA_{}_d03_stations_mapping.csv'.format(os.path.join(ROOT_DIR, "grid_maps/flo2d"), flo2d_model), nearest_d03_stations_list)
 
 
 if __name__=="__main__":

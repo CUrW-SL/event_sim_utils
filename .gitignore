@@ -1,3 +1,5 @@
 /venv/
 /.idea/
 /db_adapter_config.json
+/*/db_adapter.log
+/db_adapter.log

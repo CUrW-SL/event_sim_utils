@@ -51,7 +51,7 @@ def extract_active_curw_obs_rainfall_stations(start_time, end_time):
                                      result.get('latitude'), result.get('longitude')])
 
         # Write to csv file
-        create_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'), obs_stations)
+        create_csv(os.path.join(ROOT_DIR, 'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'), obs_stations)
 
     except Exception as ex:
         traceback.print_exc()
