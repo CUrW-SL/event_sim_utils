@@ -280,8 +280,8 @@ if __name__=="__main__":
             timestep = 15
 
         # find actove curw weather stations during the specified time window
-        os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
-                  .format(start_time, end_time))
+        # os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
+        #           .format(start_time, end_time))
 
         # prepare and populate flo2d grid maps
         # 1. flo2d grids to weather stations
