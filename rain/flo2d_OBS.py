@@ -87,6 +87,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             stations_dict_for_obs[active_obs_stations[obs_index][1]] = active_obs_stations[obs_index][0]
 
         flo2d_obs_mapping = get_flo2d_cells_to_obs_grid_mappings(pool=curw_sim_pool, grid_interpolation=grid_interpolation, flo2d_model=flo2d_model)
+        print(flo2d_obs_mapping[10])
 
         for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
