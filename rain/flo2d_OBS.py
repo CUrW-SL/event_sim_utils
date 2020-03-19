@@ -87,7 +87,6 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             stations_dict_for_obs[active_obs_stations[obs_index][1]] = active_obs_stations[obs_index][0]
 
         flo2d_obs_mapping = get_flo2d_cells_to_obs_grid_mappings(pool=curw_sim_pool, grid_interpolation=grid_interpolation, flo2d_model=flo2d_model)
-        print("flo2d_obs_mapping :::", flo2d_obs_mapping)
 
         for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
@@ -106,6 +105,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 meta_data['id'] = tms_id
                 TS.insert_run(meta_data=meta_data)
 
+            print("grid_id:", meta_data['grid_id'])
+            print("grid map:", flo2d_obs_mapping.get(meta_data['grid_id']))
             obs1_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[0])
             obs2_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[1])
             obs3_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[2])
