@@ -30,9 +30,11 @@ ROOT_DIR = '/home/curw/event_sim_utils'
 
 
 def check_time_format(time, model):
+    print("############ 1. time :", time)
     # hourly timeseries
     try:
         time = datetime.strptime(time, DATE_TIME_FORMAT)
+        print("############ 2. time :", time)
 
         if time.strftime('%S') != '00':
             print("Seconds should be always 00")
@@ -40,6 +42,8 @@ def check_time_format(time, model):
         # if model=="flo2d_250" and time.strftime('%M') not in ('05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '00'):
         #     print("Minutes should be multiple of 5 fro flo2d_250")
         #     exit(1)
+        print("############ 3. time :", time)
+
         if model in ("flo2d_250", "flo2d_150", "flo2d_150_v2") and time.strftime('%M') != '00':
             print("Minutes should be always 00")
             exit(1)
