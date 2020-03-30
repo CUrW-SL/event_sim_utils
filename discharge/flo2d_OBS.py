@@ -30,11 +30,9 @@ ROOT_DIR = '/home/curw/event_sim_utils'
 
 
 def check_time_format(time, model):
-    print("############ 1. time :", time)
     # hourly timeseries
     try:
         time = datetime.strptime(time, DATE_TIME_FORMAT)
-        print("############ 2. time :", time)
 
         if time.strftime('%S') != '00':
             print("Seconds should be always 00")
@@ -42,8 +40,6 @@ def check_time_format(time, model):
         # if model=="flo2d_250" and time.strftime('%M') not in ('05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '00'):
         #     print("Minutes should be multiple of 5 fro flo2d_250")
         #     exit(1)
-        print("############ 3. time :", time)
-
         if model in ("flo2d_250", "flo2d_150", "flo2d_150_v2") and time.strftime('%M') != '00':
             print("Minutes should be always 00")
             exit(1)
@@ -192,8 +188,6 @@ if __name__=="__main__":
             print("Flo2d model should be either \"flo2d_250\" or \"flo2d_150\" or \"flo2d_150_v2\"")
             exit(1)
 
-        print("time range: ", start_time, end_time)
-
         if start_time is None:
             start_time = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d 23:00:00')
         else:
@@ -218,7 +212,7 @@ if __name__=="__main__":
 
         print("{} : ####### Insert obs waterlevel series for {}.".format(datetime.now(), flo2d_model))
         os.system("./waterlevel/flo2d_OBS.py -m {} -s \"{}\" -e \"{}\""
-                  .format(flo2d_model, start_time.strftime(DATE_TIME_FORMAT), end_time.strftime(DATE_TIME_FORMAT)))
+                  .format(flo2d_model, start_time, end_time))
 
 
         print("{} : ####### Insert obs discharge series for {}.".format(datetime.now(), flo2d_model))
