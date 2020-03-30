@@ -188,6 +188,8 @@ if __name__=="__main__":
             print("Flo2d model should be either \"flo2d_250\" or \"flo2d_150\" or \"flo2d_150_v2\"")
             exit(1)
 
+        print("time range: ", start_time, end_time)
+
         if start_time is None:
             start_time = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d 23:00:00')
         else:
