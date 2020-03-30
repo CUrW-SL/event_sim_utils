@@ -127,7 +127,6 @@ def update_waterlevel_obs(obs_connection, curw_sim_pool, flo2d_model, method, ti
 
         if estimated_wl_ts is not None and len(estimated_wl_ts) > 0:
             TS.insert_data(timeseries=estimated_wl_ts, tms_id=tms_id, upsert=True)
-            TS.update_latest_obs(id_=tms_id, obs_end=estimated_wl_ts[-1][1])
 
     except Exception as e:
         traceback.print_exc()

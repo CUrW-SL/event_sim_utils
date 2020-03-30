@@ -132,7 +132,6 @@ def update_discharge_obs(curw_sim_pool, flo2d_model, method, timestep, start_tim
 
         if estimated_discharge_ts is not None and len(estimated_discharge_ts) > 0:
             discharge_TS.insert_data(timeseries=estimated_discharge_ts, tms_id=tms_id, upsert=True)
-            discharge_TS.update_latest_obs(id_=tms_id, obs_end=estimated_discharge_ts[-1][1])
 
     except Exception as e:
         traceback.print_exc()
