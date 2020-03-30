@@ -217,8 +217,8 @@ if __name__=="__main__":
                                  db=con_params.CURW_SIM_DATABASE)
 
         print("{} : ####### Insert obs waterlevel series for {}.".format(datetime.now(), flo2d_model))
-        os.system("./waterlevel/flo2d_OBS.py -m {} -s {} -e {}"
-                  .format(flo2d_model, start_time, end_time))
+        os.system("./waterlevel/flo2d_OBS.py -m {} -s \"{}\" -e \"{}\""
+                  .format(flo2d_model, start_time.strftime(DATE_TIME_FORMAT), end_time.strftime(DATE_TIME_FORMAT)))
 
 
         print("{} : ####### Insert obs discharge series for {}.".format(datetime.now(), flo2d_model))
