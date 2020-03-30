@@ -101,8 +101,8 @@ def update_discharge_obs(curw_sim_pool, flo2d_model, method, timestep, start_tim
         }
 
         wl_meta_data = {
-            'latitude': float('%.6f' % float(extract_stations_dict.get(station_name)[0])),
-            'longitude': float('%.6f' % float(extract_stations_dict.get(station_name)[1])),
+            'latitude': float('%.6f' % float(extract_stations_dict.get(flo2d_model)[0])),
+            'longitude': float('%.6f' % float(extract_stations_dict.get(flo2d_model)[1])),
             'model': flo2d_model, 'method': method,
             'grid_id': 'waterlevel_{}'.format(station_name)
         }
