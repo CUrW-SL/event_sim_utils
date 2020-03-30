@@ -37,8 +37,8 @@ def check_time_format(time, model):
         if model=="flo2d_250" and time.strftime('%M') not in ('05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '00'):
             print("Minutes should be multiple of 5 fro flo2d_250")
             exit(1)
-        if model=="flo2d_150" and time.strftime('%M') not in ('15', '30', '45', '00'):
-            print("Minutes should be multiple of 15 for flo2d_150")
+        if model in ("flo2d_150", "flo2d_150_v2") and time.strftime('%M') not in ('15', '30', '45', '00'):
+            print("Minutes should be multiple of 15 for flo2d_150 and flo2d_150_v2")
             exit(1)
 
         return True
@@ -205,9 +205,9 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
 def usage():
     usageText = """
-    -----------------------------------------
-    Populate rainfall Flo2D 250 & 150 :: OBS
-    -----------------------------------------
+    -------------------------------------------------
+    Populate rainfall Flo2D 250, 150 & 150_v2 :: OBS
+    -------------------------------------------------
 
     Usage: ./rain/flo2d_OBS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-g XXXX]
 
@@ -281,13 +281,13 @@ if __name__=="__main__":
             timestep = 15
 
         # find actove curw weather stations during the specified time window
-        # os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
-        #           .format(start_time, end_time))
+        os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
+                  .format(start_time, end_time))
 
         # prepare and populate flo2d grid maps
         # 1. flo2d grids to weather stations
         # 2. flo2d grids to d03 stations
-        # os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
+        os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
 
         print("{} : ####### Insert obs rainfall for {} grids".format(datetime.now(), flo2d_model))
         update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
