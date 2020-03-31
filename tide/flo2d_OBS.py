@@ -67,7 +67,6 @@ def prepare_obs_tide_ts(connection, start_date, end_date, extract_station):
     for station in OBS_STATIONS.get(extract_station):
         ts = []
         with connection.cursor() as cursor1:
-            print('stored procedure, ', station, start_date, end_date)
             cursor1.callproc('getWL', (station, start_date, end_date))
             results = cursor1.fetchall()
             for result in results:
@@ -132,8 +131,8 @@ def usage():
 
     -h  --help          Show usage
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
-    -s  --start_time    Discharge timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:00:00, 3 days before today.
-    -e  --end_time      Discharge timeseries end time (e.g: "2019-06-05 23:00:00"). Default is 23:00:00, tomorrow.
+    -s  --start_time    Tidal timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:00:00, 3 days before today.
+    -e  --end_time      Tidal timeseries end time (e.g: "2019-06-05 23:00:00"). Default is 23:00:00, tomorrow.
     """
     print(usageText)
 
