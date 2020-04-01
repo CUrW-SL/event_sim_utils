@@ -156,11 +156,11 @@ if __name__=="__main__":
 
             add_flo2d_raincell_grid_mappings(pool=pool, flo2d_model=flo2d_model, grid_interpolation=grid_interpolation_method,
                                              obs_map_file_path=os.path.join(ROOT_DIR,'grid_maps/flo2d/{}_{}_obs_mapping.csv'
-                                             .format(grid_interpolation_method, flo2d_model)),
-                                             d03_map_file_path=os.path.join(ROOT_DIR,'grid_maps/flo2d/{}_{}_d03_stations_mapping.csv'
                                              .format(grid_interpolation_method, flo2d_model)))
-            print("{} {} grids added".format(len(get_flo2d_cells_to_wrf_grid_mappings(
-                pool=pool, flo2d_model=flo2d_model, grid_interpolation=grid_interpolation_method).keys()), flo2d_model))
+            # d03_map_file_path=os.path.join(ROOT_DIR,'grid_maps/flo2d/{}_{}_d03_stations_mapping.csv'
+            #                                              .format(grid_interpolation_method, flo2d_model))
+            # print("{} {} grids added".format(len(get_flo2d_cells_to_wrf_grid_mappings(
+            #     pool=pool, flo2d_model=flo2d_model, grid_interpolation=grid_interpolation_method).keys()), flo2d_model))
             print("{} {} grids added".format(len(get_flo2d_cells_to_obs_grid_mappings(
                 pool=pool, flo2d_model=flo2d_model, grid_interpolation=grid_interpolation_method).keys()), flo2d_model))
 
