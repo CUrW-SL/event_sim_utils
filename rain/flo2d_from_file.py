@@ -373,16 +373,18 @@ def usage():
     Populate rainfall Flo2D 250, 150 & 150_v2 :: FF
     -------------------------------------------------
 
-    Usage: ./rain/flo2d_from_file.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-g XXXX]
+    Usage: ./rain/flo2d_from_file.py [-m flo2d_XXX] [-M XXX] [-g XXXX] [-f <file_path>] 
+    [-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
 
     -h  --help          Show usage
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
-    -s  --start_time    Rain timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:30:00, 3 days before today.
-    -e  --end_time      Rain timeseries end time (e.g: "2019-06-05 23:30:00"). Default is 23:30:00, tomorrow.
     -M  --method        Rain interpolation method ("BC"-Bias Corrected, "MME"-Multi Model Ensemble, "FF"-From File). Default is FF.
     -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "MDPA".
     -f  --file          Path to the CSV file containing the rainfall data (e.g: "/home/uwcc-admin/event_sim_utils/corrected_rf.csv")
     """
+    # -s  --start_time    Rain timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:30:00, 3 days before today.
+    # -e  --end_time      Rain timeseries end time (e.g: "2019-06-05 23:30:00"). Default is 23:30:00, tomorrow.
+
     print(usageText)
 
 
@@ -391,8 +393,8 @@ if __name__=="__main__":
     set_db_config_file_path(os.path.join(ROOT_DIR, 'db_adapter_config.json'))
 
     try:
-        start_time = None
-        end_time = None
+        # start_time = None
+        # end_time = None
         flo2d_model = None
         method = "FF"
         grid_tag = "MDPA"  # note - grid tag "TP" has not handled yet
@@ -446,15 +448,15 @@ if __name__=="__main__":
             print("Flo2d model should be either \"flo2d_250\" or \"flo2d_150\" or \"flo2d_150_v2\"")
             exit(1)
 
-        if start_time is None:
-            start_time = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d 23:30:00')
-        else:
-            check_time_format(time=start_time, model=flo2d_model)
-
-        if end_time is None:
-            end_time = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d 23:30:00')
-        else:
-            check_time_format(time=end_time, model=flo2d_model)
+        # if start_time is None:
+        #     start_time = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d 23:30:00')
+        # else:
+        #     check_time_format(time=start_time, model=flo2d_model)
+        #
+        # if end_time is None:
+        #     end_time = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d 23:30:00')
+        # else:
+        #     check_time_format(time=end_time, model=flo2d_model)
 
         if flo2d_model == FLO2D_250:
             timestep = 5
