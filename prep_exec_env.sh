@@ -25,6 +25,8 @@ then
     pip install PyMySQL
     echo "Installing db adapter"
     pip install git+https://github.com/shadhini/curw_db_adapter.git
+    pip install pandas numpy geopandas
+    pip install scipy
 fi
 
 # Deactivating virtual environment
