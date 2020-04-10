@@ -197,7 +197,7 @@ def get_voronoi_polygons(points_dict, shape_file, shape_attribute=None, output_s
     shape file
     """
     if shape_attribute is None:
-        shape_attribute = ['OBJECTID', 1]
+        shape_attribute = ['OBJECTID_1', 1]
 
     shape_df = gpd.GeoDataFrame.from_file(shape_file)
     shape_polygon_idx = shape_df.index[shape_df[shape_attribute[0]] == shape_attribute[1]][0]
