@@ -430,12 +430,14 @@ if __name__=="__main__":
             # update_rainfall_from_file(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
             #                           timestep=timestep, start_time=start_time, end_time=end_time)
         elif grid_tag == "TP":
-            shape_file_path = os.path.join(ROOT_DIR, 'shape_files/Kalani_basin_hec_wgs/Kalani_basin_hec_wgs.shp')
+            flo2d_version = "_".join(flo2d_model.split("_")[1:])
+            shape_file_path = os.path.join(ROOT_DIR, 'shape_files/{}m_model_boundary_wgs/{}m_model_boundary_wgs.shp'
+                                           .format(flo2d_version, flo2d_version))
 
             output_shape_file_path = os.path.join(ROOT_DIR, 'shape_files/output', "{}_out_shp.shp".format(
                 (datetime.now()).strftime("%Y-%m-%d_%H-%M-%S")))
 
-            polygons = get_voronoi_polygons(points_dict=points_dict, shape_file=shape_file_path, shape_attribute=['OBJECTID_1', 1],
+            polygons = get_voronoi_polygons(points_dict=points_dict, shape_file=shape_file_path, shape_attribute=['Id', 0],
                                  output_shape_file=output_shape_file_path, add_total_area=True)
 
             flo2d_grid_polygon_map = divide_flo2d_grids_to_polygons(flo2d_model=flo2d_model, polygons=polygons)
