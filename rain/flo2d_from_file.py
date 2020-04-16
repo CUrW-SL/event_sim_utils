@@ -431,7 +431,7 @@ if __name__=="__main__":
             #                           timestep=timestep, start_time=start_time, end_time=end_time)
         elif grid_tag == "TP":
             flo2d_version = "_".join(flo2d_model.split("_")[1:])
-            shape_file_path = os.path.join(ROOT_DIR, 'shape_files/{}m_model_boundary_wgs/{}m_model_boundary_wgs.shp'
+            shape_file_path = os.path.join(ROOT_DIR, 'shape_files/{}m_model/{}m_model.shp'
                                            .format(flo2d_version, flo2d_version))
 
             output_shape_file_path = os.path.join(ROOT_DIR, 'shape_files/output', "{}_out_shp.shp".format(
