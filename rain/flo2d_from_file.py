@@ -197,7 +197,7 @@ def get_voronoi_polygons(points_dict, shape_file, shape_attribute=None, output_s
     shape file
     """
     if shape_attribute is None:
-        shape_attribute = ['OBJECTID_1', 1]
+        shape_attribute = ['OBJECTID', 1]
 
     shape_df = gpd.GeoDataFrame.from_file(shape_file)
     shape_polygon_idx = shape_df.index[shape_df[shape_attribute[0]] == shape_attribute[1]][0]
@@ -224,147 +224,96 @@ def get_voronoi_polygons(points_dict, shape_file, shape_attribute=None, output_s
     return df
 
 
+def divide_flo2d_grids_to_polygons(flo2d_model, polygons):
+
+    flo2d_grids = read_csv(
+        os.path.join(ROOT_DIR, 'grids/flo2d/{}m.csv'.format(flo2d_model)))  # [Grid_ ID, X(longitude), Y(latitude)]
+
+    for grid in flo2d_grids:
+        point = Point(float(grid[1]), float(grid[2]))
+
+        for index, row in polygons.iterrows():
+            polygon = polygons.iloc[index]['geometry']
+            if point.within(polygon):
+                grid.append(polygons.iloc[index]['id'])
+                continue
+
+    return flo2d_grids
+
+
 # for bulk insertion for a given one grid interpolation method
-# def update_rainfall_from_file(flo2d_stations_mapping_dict, rainfall_df, flo2d_model, method, grid_interpolation,
-#                               timestep, start_time, end_time):
-#
-#     """
-#     Update rainfall observations for flo2d models
-#     :param flo2d_model: flo2d model
-#     :param method: value interpolation method
-#     :param grid_interpolation: grid interpolation method
-#     :param timestep: output timeseries timestep
-#     :return:
-#     """
-#
-#     start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
-#
-#     try:
-#
-#         # Connect to the database
-#         curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
-#                                  password=con_params.CURW_SIM_PASSWORD,
-#                                  port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
-#
-#         TS = Sim_Timeseries(pool=curw_sim_pool)
-#
-#         # # [hash_id, station_id, station_name, latitude, longitude]
-#         # active_obs_stations
-#         flo2d_grids = read_csv(os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)))  # [Grid_ ID, X(longitude), Y(latitude)]
-#
-#         # stations_dict_for_obs = { }  # keys: obs station id , value: hash id
-#
-#         for flo2d_index in range(len(flo2d_grids)):
-#             lat = flo2d_grids[flo2d_index][2]
-#             lon = flo2d_grids[flo2d_index][1]
-#             cell_id = flo2d_grids[flo2d_index][0]
-#             meta_data = {
-#                     'latitude': float('%.6f' % float(lat)), 'longitude': float('%.6f' % float(lon)),
-#                     'model': flo2d_model, 'method': method,
-#                     'grid_id': '{}_{}_{}'.format(flo2d_model, grid_interpolation, (str(cell_id)).zfill(10))
-#                     }
-#
-#             tms_id = TS.get_timeseries_id(grid_id=meta_data.get('grid_id'), method=meta_data.get('method'))
-#
-#             if tms_id is None:
-#                 tms_id = TS.generate_timeseries_id(meta_data=meta_data)
-#                 meta_data['id'] = tms_id
-#                 TS.insert_run(meta_data=meta_data)
-#
-#             print("grid_id:", meta_data['grid_id'])
-#             print("grid map:", flo2d_obs_mapping.get(meta_data['grid_id']))
-#             obs1_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[0])
-#             obs2_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[1])
-#             obs3_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[2])
-#
-#             obs_timeseries = []
-#
-#             if timestep == 5:
-#                 if obs1_station_id != str(-1):
-#                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
-#
-#                     ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=start, id=obs1_hash_id,
-#                                                    end_time=end_time)
-#                     if ts is not None and len(ts) > 1:
-#                         obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=start)[1:])
-#                         # obs_start = ts[-1][0]
-#
-#                     if obs2_station_id != str(-1):
-#                         obs2_hash_id = stations_dict_for_obs.get(obs2_station_id)
-#
-#                         ts2 = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=start, id=obs2_hash_id,
-#                                                         end_time=end_time)
-#                         if ts2 is not None and len(ts2) > 1:
-#                             obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts2, OBS_TS=obs_timeseries)
-#                             if obs_timeseries is not None and len(obs_timeseries) > 0:
-#                                 expected_start = obs_timeseries[-1][0]
-#                             else:
-#                                 expected_start= start
-#                             obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts2, expected_start=expected_start)[1:])
-#                             # obs_start = ts2[-1][0]
-#
-#                         if obs3_station_id != str(-1):
-#                             obs3_hash_id = stations_dict_for_obs.get(obs3_station_id)
-#
-#                             ts3 = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=start, id=obs3_hash_id,
-#                                                             end_time=end_time)
-#                             if ts3 is not None and len(ts3) > 1 and len(obs_timeseries) > 0:
-#                                 obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts3, OBS_TS=obs_timeseries)
-#                                 if obs_timeseries is not None:
-#                                     expected_start = obs_timeseries[-1][0]
-#                                 else:
-#                                     expected_start= start
-#                                 obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
-#             elif timestep == 15:
-#                 if obs1_station_id != str(-1):
-#                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
-#
-#                     ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=start, id=obs1_hash_id,
-#                                                     end_time=end_time)
-#                     if ts is not None and len(ts) > 1:
-#                         obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=start)[1:])
-#                         # obs_start = ts[-1][0]
-#
-#                     if obs2_station_id != str(-1):
-#                         obs2_hash_id = stations_dict_for_obs.get(obs2_station_id)
-#
-#                         ts2 = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=start, id=obs2_hash_id,
-#                                                          end_time=end_time)
-#                         if ts2 is not None and len(ts2) > 1:
-#                             obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts2, OBS_TS=obs_timeseries)
-#                             if obs_timeseries is not None and len(obs_timeseries) > 0:
-#                                 expected_start = obs_timeseries[-1][0]
-#                             else:
-#                                 expected_start = start
-#                             obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts2, expected_start=expected_start)[1:])
-#                             # obs_start = ts2[-1][0]
-#
-#                         if obs3_station_id != str(-1):
-#                             obs3_hash_id = stations_dict_for_obs.get(obs3_station_id)
-#
-#                             ts3 = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=start, id=obs3_hash_id,
-#                                                              end_time=end_time)
-#                             if ts3 is not None and len(ts3) > 1 and len(obs_timeseries) > 0:
-#                                 obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts3, OBS_TS=obs_timeseries)
-#                                 if obs_timeseries is not None:
-#                                     expected_start = obs_timeseries[-1][0]
-#                                 else:
-#                                     expected_start = start
-#                                 obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
-#
-#             for i in range(len(obs_timeseries)):
-#                 if obs_timeseries[i][1] == -99999:
-#                     obs_timeseries[i][1] = 0
-#
-#             if obs_timeseries is not None and len(obs_timeseries) > 0:
-#                 TS.insert_data(timeseries=obs_timeseries, tms_id=tms_id, upsert=True)
-#
-#     except Exception as e:
-#         traceback.print_exc()
-#         logger.error("Exception occurred while updating obs rainfalls in curw_sim.")
-#     finally:
-#         destroy_Pool(pool=curw_sim_pool)
-#         logger.info("Process finished")
+def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, mean_rf, flo2d_model, method,
+                              grid_interpolation, timestep, start_time=None, end_time=None):
+
+    """
+    Update rainfall observations for flo2d models
+    :param flo2d_model: flo2d model
+    :param method: value interpolation method
+    :param grid_interpolation: grid interpolation method
+    :param timestep: output timeseries timestep
+    :return:
+    """
+
+    # start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+
+    try:
+
+        # Connect to the database
+        curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
+                                 password=con_params.CURW_SIM_PASSWORD,
+                                 port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
+
+        TS = Sim_Timeseries(pool=curw_sim_pool)
+
+        # # [hash_id, station_id, station_name, latitude, longitude]
+        # flo2d_grid_polygon_map :: [Grid_ ID, X(longitude), Y(latitude), matching_point]
+
+        # stations_dict_for_obs = { }  # keys: obs station id , value: hash id
+
+        for grid in flo2d_grid_polygon_map:
+            lat = grid[2]
+            lon = grid[1]
+            cell_id = grid[0]
+            meta_data = {
+                    'latitude': float('%.6f' % float(lat)), 'longitude': float('%.6f' % float(lon)),
+                    'model': flo2d_model, 'method': method,
+                    'grid_id': '{}_{}_{}'.format(flo2d_model, grid_interpolation, (str(cell_id)).zfill(10))
+                    }
+
+            if len(grid) > 3:
+                polygon = grid[3]
+
+                poly_lat = stations_dict.get(polygon)[1]
+                poly_lon = stations_dict.get(polygon)[0]
+
+                timeseries = rainfall_df.loc[
+                    (rainfall_df['latitude'] == poly_lat) & (rainfall_df['longitude'] == poly_lon)].values.tolist()
+
+            else:
+                timeseries = mean_rf
+
+            tms_id = TS.get_timeseries_id(grid_id=meta_data.get('grid_id'), method=meta_data.get('method'))
+
+            if tms_id is None:
+                tms_id = TS.generate_timeseries_id(meta_data=meta_data)
+                meta_data['id'] = tms_id
+                TS.insert_run(meta_data=meta_data)
+
+            print("grid_id:", meta_data['grid_id'])
+
+            # for i in range(len(obs_timeseries)):
+            #     if obs_timeseries[i][1] == -99999:
+            #         obs_timeseries[i][1] = 0
+
+            if timeseries is not None and len(timeseries) > 0:
+                TS.insert_data(timeseries=timeseries, tms_id=tms_id, upsert=True)
+
+    except Exception as e:
+        traceback.print_exc()
+        logger.error("Exception occurred while updating obs rainfalls in curw_sim.")
+    finally:
+        destroy_Pool(pool=curw_sim_pool)
+        logger.info("Process finished")
 
 
 def usage():
@@ -466,6 +415,8 @@ if __name__=="__main__":
             timestep = 15
 
         corrected_rf_df = pd.read_csv(file_path, delimiter=',')
+        mean_rf = corrected_rf_df.groupby('time').mean()['WRF_A'].reset_index().values.tolist()
+
         distinct_stations = corrected_rf_df.groupby(['longitude', 'latitude']).size()
 
         points_dict = {}
@@ -485,8 +436,15 @@ if __name__=="__main__":
             output_shape_file_path = os.path.join(ROOT_DIR, 'shape_files/output', "{}_out_shp.shp".format(
                 (datetime.now()).strftime("%Y-%m-%d_%H-%M-%S")))
 
-            get_voronoi_polygons(points_dict=points_dict, shape_file=shape_file_path, shape_attribute=None,
+            polygons = get_voronoi_polygons(points_dict=points_dict, shape_file=shape_file_path, shape_attribute=['OBJECTID_1', 1],
                                  output_shape_file=output_shape_file_path, add_total_area=True)
+
+            flo2d_grid_polygon_map = divide_flo2d_grids_to_polygons(flo2d_model=flo2d_model, polygons=polygons)
+
+            print("{} : ####### Insert rainfall from file to {} grids".format(datetime.now(), flo2d_model))
+            update_rainfall_from_file(flo2d_grid_polygon_map=flo2d_grid_polygon_map, stations_dict=points_dict,
+                                      rainfall_df=corrected_rf_df, mean_rf=mean_rf, flo2d_model=flo2d_model, method=method,
+                                      grid_interpolation=grid_interpolation, timestep=timestep)
 
     except Exception as e:
         traceback.print_exc()
