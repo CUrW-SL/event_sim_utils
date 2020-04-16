@@ -36,6 +36,8 @@ from db_adapter.logger import logger
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 ROOT_DIR = '/home/curw/event_sim_utils'
 
+mean_rf = []
+
 
 def check_time_format(time, model):
     try:
@@ -242,7 +244,7 @@ def divide_flo2d_grids_to_polygons(flo2d_model, polygons):
 
 
 # for bulk insertion for a given one grid interpolation method
-def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, mean_rf, flo2d_model, method,
+def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, flo2d_model, method,
                               grid_interpolation, timestep, start_time=None, end_time=None):
 
     """
@@ -416,12 +418,11 @@ if __name__=="__main__":
             timestep = 15
 
         corrected_rf_df = pd.read_csv(file_path, delimiter=',')
-        mean_rf = corrected_rf_df.groupby('time').mean()['WRF_A'].reset_index().values.tolist()
+        mean_rf = corrected_rf_df.groupby('time').mean().round(3)['WRF_A'].reset_index().values.tolist()
 
         distinct_stations = corrected_rf_df.groupby(['longitude', 'latitude']).size()
 
         points_dict = {}
-        print('distinct_stations')
         count = 1000
         for index, row in distinct_stations.iteritems():
             points_dict['point_{}'.format(count)] = [index[0], index[1]]
@@ -444,7 +445,7 @@ if __name__=="__main__":
 
             print("{} : ####### Insert rainfall from file to {} grids".format(datetime.now(), flo2d_model))
             update_rainfall_from_file(flo2d_grid_polygon_map=flo2d_grid_polygon_map, stations_dict=points_dict,
-                                      rainfall_df=corrected_rf_df, mean_rf=mean_rf, flo2d_model=flo2d_model, method=method,
+                                      rainfall_df=corrected_rf_df, flo2d_model=flo2d_model, method=method,
                                       grid_interpolation=grid_interpolation, timestep=timestep)
 
     except Exception as e:
