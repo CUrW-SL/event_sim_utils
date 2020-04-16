@@ -287,7 +287,7 @@ def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df
                 poly_lon = stations_dict.get(polygon)[0]
 
                 processed_ts = rainfall_df.loc[
-                    (rainfall_df['latitude'] == poly_lat) & (rainfall_df['longitude'] == poly_lon)].values.tolist()
+                    (rainfall_df['latitude'] == poly_lat) & (rainfall_df['longitude'] == poly_lon)][['time', 'value']].values.tolist()
 
             else:
                 processed_ts = rainfall_df.groupby('time').mean().round(3)['value'].reset_index().values.tolist()
