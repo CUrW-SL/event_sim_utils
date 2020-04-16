@@ -245,6 +245,7 @@ def divide_flo2d_grids_to_polygons(flo2d_model, polygons):
 def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, mean_rf, flo2d_model, method,
                               grid_interpolation, timestep, start_time=None, end_time=None):
 
+    MEAN_RF = mean_rf
     """
     Update rainfall observations for flo2d models
     :param flo2d_model: flo2d model
@@ -290,7 +291,7 @@ def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df
                     (rainfall_df['latitude'] == poly_lat) & (rainfall_df['longitude'] == poly_lon)].values.tolist()
 
             else:
-                processed_ts = mean_rf
+                processed_ts = MEAN_RF
 
             tms_id = TS.get_timeseries_id(grid_id=meta_data.get('grid_id'), method=meta_data.get('method'))
 
