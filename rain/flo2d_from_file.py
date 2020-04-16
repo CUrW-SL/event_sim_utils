@@ -36,8 +36,6 @@ from db_adapter.logger import logger
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 ROOT_DIR = '/home/curw/event_sim_utils'
 
-mean_rf = []
-
 
 def check_time_format(time, model):
     try:
@@ -244,7 +242,7 @@ def divide_flo2d_grids_to_polygons(flo2d_model, polygons):
 
 
 # for bulk insertion for a given one grid interpolation method
-def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, flo2d_model, method,
+def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, mean_rf, flo2d_model, method,
                               grid_interpolation, timestep, start_time=None, end_time=None):
 
     """
@@ -288,11 +286,11 @@ def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df
                 poly_lat = stations_dict.get(polygon)[1]
                 poly_lon = stations_dict.get(polygon)[0]
 
-                timeseries = rainfall_df.loc[
+                processed_ts = rainfall_df.loc[
                     (rainfall_df['latitude'] == poly_lat) & (rainfall_df['longitude'] == poly_lon)].values.tolist()
 
             else:
-                timeseries = mean_rf
+                processed_ts = mean_rf
 
             tms_id = TS.get_timeseries_id(grid_id=meta_data.get('grid_id'), method=meta_data.get('method'))
 
@@ -302,14 +300,14 @@ def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df
                 TS.insert_run(meta_data=meta_data)
 
             print("grid_id:", meta_data['grid_id'])
-            print(timeseries)
+            print(processed_ts)
 
             # for i in range(len(obs_timeseries)):
             #     if obs_timeseries[i][1] == -99999:
             #         obs_timeseries[i][1] = 0
 
-            if timeseries is not None and len(timeseries) > 0:
-                TS.insert_data(timeseries=timeseries, tms_id=tms_id, upsert=True)
+            if processed_ts is not None and len(processed_ts) > 0:
+                TS.insert_data(timeseries=processed_ts, tms_id=tms_id, upsert=True)
 
     except Exception as e:
         traceback.print_exc()
@@ -445,7 +443,7 @@ if __name__=="__main__":
 
             print("{} : ####### Insert rainfall from file to {} grids".format(datetime.now(), flo2d_model))
             update_rainfall_from_file(flo2d_grid_polygon_map=flo2d_grid_polygon_map, stations_dict=points_dict,
-                                      rainfall_df=corrected_rf_df, flo2d_model=flo2d_model, method=method,
+                                      rainfall_df=corrected_rf_df, mean_rf=mean_rf, flo2d_model=flo2d_model, method=method,
                                       grid_interpolation=grid_interpolation, timestep=timestep)
 
     except Exception as e:
