@@ -300,6 +300,7 @@ def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df
                 TS.insert_run(meta_data=meta_data)
 
             print("grid_id:", meta_data['grid_id'])
+            print(timeseries)
 
             # for i in range(len(obs_timeseries)):
             #     if obs_timeseries[i][1] == -99999:
