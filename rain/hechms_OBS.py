@@ -100,13 +100,13 @@ def update_rainfall_obs(target_model, method, timestep, start_time, end_time):
                 ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, end_time=end_time,
                                                id=obs_hash_id)
                 if ts is not None and len(ts) > 1:
-                    obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start))
+                    obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                     # obs_start = ts[-1][0]
             elif timestep == 15:
                 ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, end_time=end_time,
                                                 id=obs_hash_id)
                 if ts is not None and len(ts) > 1:
-                    obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start))
+                    obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                     # obs_start = ts[-1][0]
 
             # for i in range(len(obs_timeseries)):
