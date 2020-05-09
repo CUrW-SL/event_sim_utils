@@ -141,7 +141,7 @@ def usage():
     Populate discharge Flo2D 250, 150 & 150_v2 :: OBS
     --------------------------------------------------
 
-    Usage: ./discharge/flo2d_OBS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
+    Usage: ./discharge/flo2d_HECHMS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
 
     -h  --help          Show usage
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
@@ -204,10 +204,6 @@ if __name__=="__main__":
         curw_fcst_pool = get_Pool(host=con_params.CURW_FCST_HOST, user=con_params.CURW_FCST_USERNAME,
                                  password=con_params.CURW_FCST_PASSWORD, port=con_params.CURW_FCST_PORT,
                                  db=con_params.CURW_FCST_DATABASE)
-
-        print("{} : ####### Insert obs waterlevel series for {}.".format(datetime.now(), flo2d_model))
-        os.system("./waterlevel/flo2d_OBS.py -m {} -s \"{}\" -e \"{}\""
-                  .format(flo2d_model, start_time, end_time))
 
 
         print("{} : ####### Insert hechms discharge series for {}.".format(datetime.now(), flo2d_model))
