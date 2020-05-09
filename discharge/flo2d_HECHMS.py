@@ -67,6 +67,7 @@ def process_fcst_ts_from_hechms_outputs(curw_fcst_pool, extract_stations, i, sta
         source_id = get_source_id(pool=curw_fcst_pool, model=source_model, version=version)
 
         fcst_series = FCST_TS.get_latest_timeseries(sim_tag, station_id, source_id, variable_id, unit_id, start=None)
+        print(fcst_series)
         if (fcst_series is None) or (len(fcst_series)<1):
             return None
 
