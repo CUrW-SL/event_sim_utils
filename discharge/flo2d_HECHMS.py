@@ -48,7 +48,7 @@ def list_of_lists_to_df_first_row_as_columns(data):
     return pd.DataFrame.from_records(data[1:], columns=data[0])
 
 
-def process_fcst_ts_from_hechms_outputs(curw_fcst_pool, extract_stations, i, start, end):
+def process_fcst_ts_from_hechms_outputs(curw_fcst_pool, extract_stations, i, start, end, sim_tag=None):
 
     FCST_TS = Fcst_Timeseries(curw_fcst_pool)
 
@@ -56,8 +56,10 @@ def process_fcst_ts_from_hechms_outputs(curw_fcst_pool, extract_stations, i, sta
         # [station_name,latitude,longitude,target,model,version,sim_tag,station]
         source_model = extract_stations[i][4]
         version = extract_stations[i][5]
-        sim_tag = extract_stations[i][6]
         station_id = extract_stations[i][7]
+
+        if sim_tag is None:
+            sim_tag = extract_stations[i][6]
 
         variable_id = 3 # Discharge
         unit_id = 3 # m3/s | Instantaneous
@@ -92,7 +94,7 @@ def process_fcst_ts_from_hechms_outputs(curw_fcst_pool, extract_stations, i, sta
         traceback.print_exc()
 
 
-def update_discharge_from_hechms(curw_sim_pool, curw_fcst_pool, flo2d_model, method, start_time, end_time):
+def update_discharge_from_hechms(curw_sim_pool, curw_fcst_pool, flo2d_model, method, start_time, end_time, sim_tag):
     try:
         TS = DTimeseries(pool=curw_sim_pool)
 
@@ -123,7 +125,8 @@ def update_discharge_from_hechms(curw_sim_pool, curw_fcst_pool, flo2d_model, met
 
                     processed_discharge_ts = process_fcst_ts_from_hechms_outputs(curw_fcst_pool=curw_fcst_pool,
                                                                                  extract_stations= extract_stations,
-                                                                                 i=i, start=start_time, end=end_time)
+                                                                                 i=i, start=start_time, end=end_time,
+                                                                                 sim_tag=sim_tag)
 
                     if processed_discharge_ts is not None and len(processed_discharge_ts) > 0:
                         TS.insert_data(timeseries=processed_discharge_ts, tms_id=tms_id, upsert=True)
@@ -147,6 +150,8 @@ def usage():
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
     -s  --start_time    Discharge timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:00:00, 3 days before today.
     -e  --end_time      Discharge timeseries end time (e.g: "2019-06-05 23:00:00"). Default is 23:00:00, tomorrow.
+    -t  --hec_sim_tag   Simulation Tag of the desired HecHMS run from which you wanna prepare the Discharge timeseries.
+                        (e.g: "event_run")
     """
     print(usageText)
 
@@ -160,10 +165,11 @@ if __name__=="__main__":
         end_time = None
         flo2d_model = None
         method = "HECHMS"
+        hechms_sim_tag = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h:m:s:e:",
-                                       ["help", "flo2d_model=", "start_time=", "end_time="])
+            opts, args = getopt.getopt(sys.argv[1:], "h:m:s:e:t:",
+                                       ["help", "flo2d_model=", "start_time=", "end_time=", "hec_sim_tag="])
         except getopt.GetoptError:
             usage()
             sys.exit(2)
@@ -177,6 +183,8 @@ if __name__=="__main__":
                 start_time = arg.strip()
             elif opt in ("-e", "--end_time"):
                 end_time = arg.strip()
+            elif opt in ("-t", "--hec_sim_tag"):
+                hechms_sim_tag = arg.strip()
 
         if flo2d_model is None:
             print("Flo2d model is not specified.")
@@ -208,7 +216,7 @@ if __name__=="__main__":
 
         print("{} : ####### Insert hechms discharge series for {}.".format(datetime.now(), flo2d_model))
         update_discharge_from_hechms(curw_sim_pool=curw_sim_pool, curw_fcst_pool=curw_fcst_pool, flo2d_model=flo2d_model,
-                                     method=method, start_time=start_time, end_time=end_time)
+                                     method=method, start_time=start_time, end_time=end_time, sim_tag=hechms_sim_tag)
 
     except Exception as e:
         traceback.print_exc()
