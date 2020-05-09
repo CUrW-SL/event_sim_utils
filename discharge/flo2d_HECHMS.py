@@ -109,7 +109,7 @@ def update_discharge_from_hechms(curw_sim_pool, curw_fcst_pool, flo2d_model, met
             target_model = extract_stations[i][3]
 
             if target_model == flo2d_model:
-                if station_name in ():
+                if station_name in ("glencourse"):
                     meta_data = {
                         'latitude': float('%.6f' % float(latitude)),
                         'longitude': float('%.6f' % float(longitude)),
