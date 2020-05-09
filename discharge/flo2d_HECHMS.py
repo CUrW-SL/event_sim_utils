@@ -141,9 +141,9 @@ def update_discharge_from_hechms(curw_sim_pool, curw_fcst_pool, flo2d_model, met
 
 def usage():
     usageText = """
-    --------------------------------------------------
-    Populate discharge Flo2D 250, 150 & 150_v2 :: OBS
-    --------------------------------------------------
+    ------------------------------------------------------
+    Populate discharge Flo2D 250, 150 & 150_v2 :: HECHMS
+    ------------------------------------------------------
 
     Usage: ./discharge/flo2d_HECHMS.py [-m flo2d_XXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
 

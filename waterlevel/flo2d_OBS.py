@@ -115,6 +115,7 @@ def update_waterlevel_obs(obs_connection, curw_sim_pool, flo2d_model, method, ti
             for result in results:
                 ranwala_ts.append([result.get('time'), result.get('value')])
 
+        print(ranwala_ts)
         interpolated_ranwala_ts = fill_ts_missing_entries(start=start_time, end=end_time, timeseries=ranwala_ts,
                                                           interpolation_method='linear', timestep=60)
 
