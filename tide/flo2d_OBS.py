@@ -17,10 +17,16 @@ from db_adapter.constants import COMMON_DATE_TIME_FORMAT
 from db_adapter.curw_sim.timeseries.tide import Timeseries
 from db_adapter.curw_sim.common import append_ts, average_timeseries, fill_ts_missing_entries
 
+# OBS_STATIONS = {
+#     'colombo': [100066, 100024],
+#     'wellawatta': [100024],
+#     'mattakkuliya': [100066]
+# }
+
 OBS_STATIONS = {
-    'colombo': [100066, 100024],
+    'colombo': [100027, 100024],
     'wellawatta': [100024],
-    'mattakkuliya': [100066]
+    'mattakkuliya': [100027]
 }
 
 
