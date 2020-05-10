@@ -2,13 +2,14 @@
 import pymysql
 import traceback
 import getopt
-import sys
+import sys, os
 from datetime import datetime, timedelta
 
 from db_adapter.constants import set_db_config_file_path
 from db_adapter.constants import connection as con_params
 
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+ROOT_DIR = '/home/curw/event_sim_utils'
 
 # connection params
 HOST = ""
@@ -205,7 +206,7 @@ def fill_missing_fcsts(end, model, method):
 
 def usage():
     usageText = """
-    Usage: ./fill_flo2d_raincell_missing_values.py [-m XXXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-o [OBS|FCST]]
+    Usage: ./fill_missing_values/fill_flo2d_raincell_missing_values.py [-m XXXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-o [OBS|FCST]] [-E]
 
     -h  --help          Show usage
     -m  --model         Model (e.g. flo2d_250, flo2d_150, hechms). Default is flo2d_250.
@@ -216,6 +217,7 @@ def usage():
                         Default is 23:30:00, tomorrow.
     -o  --option        OBS | FCST. If OBS, fill gaps in between start_time and end_time. If FCST, fill fcsts until end_time.
                         Default is FCST.
+    -E  --event_sim     Considered databse, event database or not (e.g. -E, --event_sim)
     """
     print(usageText)
 
@@ -244,7 +246,7 @@ def check_time_format(time, model):
 if __name__=="__main__":
 
 
-    set_db_config_file_path('/home/uwcc-admin/curw_sim_db_utils/db_adapter_config.json')
+    set_db_config_file_path('/home/curw/event_sim_utils/db_adapter_config.json')
 
     HOST = con_params.CURW_SIM_HOST
     USER = con_params.CURW_SIM_USERNAME
@@ -258,10 +260,11 @@ if __name__=="__main__":
         model = None
         method=None
         option = None
+        event_sim = False
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h:m:M:s:e:o:",
-                    ["help", "model=", "method=", "start_time=", "end_time=", "option="])
+            opts, args = getopt.getopt(sys.argv[1:], "h:m:M:s:e:o:E",
+                    ["help", "model=", "method=", "start_time=", "end_time=", "option=", "event_sim"])
         except getopt.GetoptError:
             usage()
             sys.exit(2)
@@ -279,7 +282,11 @@ if __name__=="__main__":
                 end_time = arg.strip()
             elif opt in ("-o", "--option"):
                 option = arg.strip()
+            elif opt in ("-E", "--event_sim"):
+                event_sim = True
 
+        if event_sim:
+            set_db_config_file_path(os.path.join(ROOT_DIR, 'db_adapter_config_event_sim.json'))
 
         print(model, start_time, end_time, option)
 
