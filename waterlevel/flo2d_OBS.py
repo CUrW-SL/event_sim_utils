@@ -19,8 +19,8 @@ DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 ROOT_DIR = '/home/curw/event_sim_utils'
 
 
-RANWALA_WL_ID = 100064
-# RANWALA_WL_ID = 100047
+# RANWALA_WL_ID = 100064
+RANWALA_WL_ID = 100047
 
 
 def check_time_format(time, model):
