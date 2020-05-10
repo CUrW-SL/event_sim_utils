@@ -109,5 +109,6 @@ if __name__=="__main__":
 
     except Exception as e:
         traceback.print_exc()
+        exit(1)
     finally:
         print("Process finished.")
