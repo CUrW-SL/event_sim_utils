@@ -192,10 +192,11 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             if obs_timeseries is not None and len(obs_timeseries) > 0:
                 TS.insert_data(timeseries=obs_timeseries, tms_id=tms_id, upsert=True)
+                TS.update_latest_obs(id_=tms_id, obs_end=(obs_timeseries[-1][1]))
 
     except Exception as e:
         traceback.print_exc()
-        logger.error("Exception occurred while updating obs rainfalls in curw_sim.")
+        logger.error("Exception occurred while updating obs rainfalls in curw_sim. \n{} {}".format(meta_data['grid_id']))
     finally:
         curw_obs_connection.close()
         destroy_Pool(pool=curw_sim_pool)
@@ -281,13 +282,13 @@ if __name__=="__main__":
             timestep = 15
 
         # find actove curw weather stations during the specified time window
-        os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
-                  .format(start_time, end_time))
+        os.system("{}/grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
+                  .format(ROOT_DIR, start_time, end_time))
 
         # prepare and populate flo2d grid maps
         # 1. flo2d grids to weather stations
         # 2. flo2d grids to d03 stations
-        os.system("./grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(flo2d_model, grid_interpolation))
+        os.system("{}/grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(ROOT_DIR, flo2d_model, grid_interpolation))
 
         print("{} : ####### Insert obs rainfall for {} grids".format(datetime.now(), flo2d_model))
         update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,

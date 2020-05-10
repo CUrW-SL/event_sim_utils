@@ -141,13 +141,11 @@ if __name__=="__main__":
         else:
             exit(0)
 
-        if flo2d_model is not None and flo2d_model in ("flo2d_250", "flo2d_150", "flo2d_150_v2"):
-            flo2d_models_list = [flo2d_model]
+        if flo2d_model in ("flo2d_250", "flo2d_150", "flo2d_150_v2"):
 
-        pool = get_Pool(host=con_params.CURW_SIM_HOST, port=con_params.CURW_SIM_PORT, user=con_params.CURW_SIM_USERNAME,
+            pool = get_Pool(host=con_params.CURW_SIM_HOST, port=con_params.CURW_SIM_PORT, user=con_params.CURW_SIM_USERNAME,
                         password=con_params.CURW_SIM_PASSWORD, db=con_params.CURW_SIM_DATABASE)
 
-        for flo2d_model in flo2d_models_list:
             print("Update {} grid mappings".format(flo2d_model))
 
             find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
