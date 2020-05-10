@@ -112,7 +112,9 @@ def fill_missing_obs_with_0s(start, end, model, method):
             for result in results:
                 ids.append([result.get('id')])
 
+        iteration = 1
         for id in ids:
+            print(iteration)
             with connection.cursor() as cursor2:
                 sql_statement = "select count(`time`) as `count` from `data` where id=%s and `time`>%s and `time`<=%s;"
                 cursor2.execute(sql_statement, (id, start, end))
@@ -122,18 +124,21 @@ def fill_missing_obs_with_0s(start, end, model, method):
                 print(id)
                 timestamp = start
                 while timestamp <= end:
-                    print(timestamp)
-
                     try:
                         with connection.cursor() as cursor3:
                             sql_statement = "INSERT INTO `data` (`id`,`time`,`value`) VALUES (%s,%s,%s);"
                             cursor3.execute(sql_statement, (id, timestamp, 0))
                         connection.commit()
-                    except Exception as ex:
+                        print(timestamp)
+                    except pymysql.err.IntegrityError as ie:
+                        connection.rollback()
+                    except Exception as e:
                         connection.rollback()
                         traceback.print_exc()
 
                     timestamp = timestamp + timedelta(minutes=timestep)
+
+            iteration += 1
 
     except Exception as ex:
         traceback.print_exc()
