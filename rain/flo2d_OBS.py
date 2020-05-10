@@ -13,7 +13,7 @@ from db_adapter.constants import connection as con_params
 from db_adapter.base import get_Pool, destroy_Pool
 from db_adapter.curw_sim.grids import get_flo2d_cells_to_wrf_grid_mappings, get_flo2d_cells_to_obs_grid_mappings
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
-from db_adapter.curw_sim.common import convert_15_min_ts_to_5_mins_ts, append_value_for_timestamp, summed_timeseries, \
+from db_adapter.curw_sim.common import process_continuous_ts, \
     process_5_min_ts, process_15_min_ts, fill_missing_values, \
     extract_obs_rain_5_min_ts, extract_obs_rain_15_min_ts
 from db_adapter.curw_sim.grids import GridInterpolationEnum
@@ -190,9 +190,14 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 if obs_timeseries[i][1] == -99999:
                     obs_timeseries[i][1] = 0
 
-            if obs_timeseries is not None and len(obs_timeseries) > 0:
-                TS.insert_data(timeseries=obs_timeseries, tms_id=tms_id, upsert=True)
-                TS.update_latest_obs(id_=tms_id, obs_end=(obs_timeseries[-1][1]))
+            if obs_timeseries[-1][0] != end_time:
+                obs_timeseries.append([end_time, 0])
+
+            final_ts = process_continuous_ts(original_ts=obs_timeseries, expected_start=start_time, filling_value=0, timestep=timestep)
+
+            if final_ts is not None and len(final_ts) > 0:
+                TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
+                TS.update_latest_obs(id_=tms_id, obs_end=(final_ts[-1][1]))
 
     except Exception as e:
         traceback.print_exc()
