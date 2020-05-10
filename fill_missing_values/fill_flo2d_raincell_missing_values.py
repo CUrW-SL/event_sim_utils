@@ -206,7 +206,7 @@ def fill_missing_fcsts(end, model, method):
 
 def usage():
     usageText = """
-    Usage: ./fill_missing_values/fill_flo2d_raincell_missing_values.py [-m XXXX][-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-o [OBS|FCST]] [-E]
+    Usage: ./fill_missing_values/fill_flo2d_raincell_missing_values.py [-m XXXX] [-M XXXXX] [-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"] [-o [OBS|FCST]] [-E]
 
     -h  --help          Show usage
     -m  --model         Model (e.g. flo2d_250, flo2d_150, hechms). Default is flo2d_250.
@@ -312,7 +312,7 @@ if __name__=="__main__":
         # Fill missing fcsts until the given end_time. #
         ################################################
         if option==OPTIONS[1]:
-            fill_missing_fcsts(end=end_time, model=model)
+            fill_missing_fcsts(end=end_time, model=model, method=method)
 
         ################################################
         # Fill gaps in between start_time and end_time #
@@ -323,7 +323,7 @@ if __name__=="__main__":
             else:
                 check_time_format(time=start_time, model=model)
 
-            fill_missing_obs_with_0s(start=start_time, end=end_time, model=model)
+            fill_missing_obs_with_0s(start=start_time, end=end_time, model=model, method=method)
 
         ################################################
         # Check whether  #
@@ -333,7 +333,7 @@ if __name__=="__main__":
                 print("You haven't specified the start time")
                 exit(1)
 
-            check_for_missing_values(start=start_time, end=end_time, model=model)
+            check_for_missing_values(start=start_time, end=end_time, model=model, method=method)
 
     except Exception:
         traceback.print_exc()
