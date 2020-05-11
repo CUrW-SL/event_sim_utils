@@ -291,7 +291,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
     except Exception as e:
         traceback.print_exc()
-        logger.error("Exception occurred while updating obs rainfalls in curw_sim. \n{} {}".format(meta_data['grid_id']))
+        logger.error("Exception occurred while updating obs rainfalls in curw_sim.")
     finally:
         curw_obs_connection.close()
         destroy_Pool(pool=curw_sim_pool)
