@@ -1,10 +1,12 @@
 #!/home/curw/event_sim_utils/venv/bin/python3
 
-import sys
-import getopt
-import os
+import operator
+import collections
 import traceback
+import os, getopt, sys
 from datetime import datetime, timedelta
+
+from math import acos, cos, sin, radians
 
 from db_adapter.csv_utils import read_csv
 
@@ -48,6 +50,90 @@ def check_time_format(time, model):
         exit(1)
 
 
+# extract curw active rainfall stations within a given perios
+def extract_active_curw_obs_rainfall_stations(start_time, end_time):
+    """
+        Extract currently active (active within last week) rainfall obs stations
+        :return:
+        """
+    # Connect to the database
+    pool = get_Pool(host=con_params.CURW_OBS_HOST, port=con_params.CURW_OBS_PORT, user=con_params.CURW_OBS_USERNAME,
+                    password=con_params.CURW_OBS_PASSWORD, db=con_params.CURW_OBS_DATABASE)
+
+    obs_stations = [['hash_id', 'station_id', 'station_name', 'latitude', 'longitude']]
+
+    connection = pool.connection()
+
+    try:
+
+        with connection.cursor() as cursor1:
+            cursor1.callproc('getActiveRfStationsAtGivenTime', (start_time, end_time))
+            results = cursor1.fetchall()
+
+            for result in results:
+                obs_stations.append([result.get('hash_id'), result.get('station_id'), result.get('station_name'),
+                                     result.get('latitude'), result.get('longitude')])
+
+        return obs_stations
+
+    except Exception as ex:
+        traceback.print_exc()
+    finally:
+        connection.close()
+        destroy_Pool(pool)
+
+
+# map nearest observational stations to flo2d grids
+def find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv, obs_stations, flo2d_model):
+    # obs_stations : [hash_id,station_id,station_name,latitude,longitude]
+
+    flo2d_station = read_csv(flo2d_stations_csv)  # [Grid_ID,X,Y]
+
+    flo2d_obs_mapping_dict = {}
+
+    for flo2d_index in range(len(flo2d_station)):
+
+        grid_id = flo2d_station[flo2d_index][0]
+
+        flo2d_obs_mapping = []
+
+        flo2d_lat = float(flo2d_station[flo2d_index][2])
+        flo2d_lng = float(flo2d_station[flo2d_index][1])
+
+        distances = {}
+
+        for obs_index in range(len(obs_stations)):
+            lat = float(obs_stations[obs_index][3])
+            lng = float(obs_stations[obs_index][4])
+
+            intermediate_value = cos(radians(flo2d_lat)) * cos(radians(lat)) * cos(
+                radians(lng) - radians(flo2d_lng)) + sin(radians(flo2d_lat)) * sin(radians(lat))
+            if intermediate_value < 1:
+                distance = 6371 * acos(intermediate_value)
+            else:
+                distance = 6371 * acos(1)
+
+            distances[obs_stations[obs_index][1]] = distance
+
+        sorted_distances = collections.OrderedDict(sorted(distances.items(), key=operator.itemgetter(1))[:10])
+
+        count = 0
+        for key in sorted_distances.keys():
+            if count < 3 and sorted_distances.get(key) <= 25:
+                flo2d_obs_mapping.extend([key, sorted_distances.get(key)])
+                count += 1
+            elif count < 3:
+                flo2d_obs_mapping.extend([-1, -1])
+                count += 1
+
+        # print(flo2d_obs_mapping)
+        flo2d_obs_mapping_dict[grid_id] = flo2d_obs_mapping
+
+    # flo2d_grid_mappings[dict.get("grid_id")] = [dict.get("obs1"), dict.get("obs2"), dict.get("obs3")]
+    flo2d_grid_mappings_dict = {}
+
+    return flo2d_obs_mapping_dict
+
 # for bulk insertion for a given one grid interpolation method
 def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start_time, end_time):
 
@@ -78,7 +164,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
         TS = Sim_Timeseries(pool=curw_sim_pool)
 
         # [hash_id, station_id, station_name, latitude, longitude]
-        active_obs_stations = read_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'))
+        # active_obs_stations = read_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'))
+        active_obs_stations = extract_active_curw_obs_rainfall_stations(start_time=start_time, end_time=end_time)
         flo2d_grids = read_csv(os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)))  # [Grid_ ID, X(longitude), Y(latitude)]
 
         stations_dict_for_obs = { }  # keys: obs station id , value: hash id
@@ -86,7 +173,10 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
         for obs_index in range(len(active_obs_stations)):
             stations_dict_for_obs[active_obs_stations[obs_index][1]] = active_obs_stations[obs_index][0]
 
-        flo2d_obs_mapping = get_flo2d_cells_to_obs_grid_mappings(pool=curw_sim_pool, grid_interpolation=grid_interpolation, flo2d_model=flo2d_model)
+        # flo2d_obs_mapping = get_flo2d_cells_to_obs_grid_mappings(pool=curw_sim_pool, grid_interpolation=grid_interpolation, flo2d_model=flo2d_model)
+        flo2d_obs_mapping = find_nearest_obs_stations_for_flo2d_stations(
+            flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
+            obs_stations=active_obs_stations, flo2d_model=flo2d_model)
 
         for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
@@ -293,7 +383,7 @@ if __name__=="__main__":
         # prepare and populate flo2d grid maps
         # 1. flo2d grids to weather stations
         # 2. flo2d grids to d03 stations
-        os.system("{}/grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(ROOT_DIR, flo2d_model, grid_interpolation))
+        # os.system("{}/grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(ROOT_DIR, flo2d_model, grid_interpolation))
 
         print("{} : ####### Insert obs rainfall for {} grids".format(datetime.now(), flo2d_model))
         update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
