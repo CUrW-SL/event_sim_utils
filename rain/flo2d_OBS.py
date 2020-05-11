@@ -121,10 +121,10 @@ def find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv, obs_station
         count = 0
         for key in sorted_distances.keys():
             if count < 3 and sorted_distances.get(key) <= 25:
-                flo2d_obs_mapping.append(key)
+                flo2d_obs_mapping.append(str(key))
                 count += 1
             elif count < 3:
-                flo2d_obs_mapping.append(str(-1))
+                flo2d_obs_mapping.append("-1")
                 count += 1
 
         # print(flo2d_obs_mapping)
@@ -203,6 +203,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             obs1_station_id = str(flo2d_obs_mapping.get(cell_id)[0])
             obs2_station_id = str(flo2d_obs_mapping.get(cell_id)[1])
             obs3_station_id = str(flo2d_obs_mapping.get(cell_id)[2])
+            print('obs1_station_id', obs1_station_id)
 
             obs_timeseries = []
 
