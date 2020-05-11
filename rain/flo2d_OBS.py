@@ -245,7 +245,6 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 print("inside")
                 if obs1_station_id != str(-1):
                     print(obs1_station_id)
-                    print("type: obs1_station_id", type(obs1_station_id))
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
                     print(obs1_hash_id)
                     ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
@@ -290,7 +289,9 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
                 obs_timeseries.append([end_time, 0])
 
-            final_ts = process_continuous_ts(original_ts=obs_timeseries, expected_start=start_time, filling_value=0, timestep=timestep)
+            final_ts = process_continuous_ts(original_ts=obs_timeseries,
+                                             expected_start=datetime.strptime(start_time, DATE_TIME_FORMAT),
+                                             filling_value=0, timestep=timestep)
 
             if final_ts is not None and len(final_ts) > 0:
                 TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
