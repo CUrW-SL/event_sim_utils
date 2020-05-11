@@ -198,26 +198,19 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             print("grid_id:", cell_id)
             print("grid map:", flo2d_obs_mapping.get(cell_id))
-            print(json.dumps(flo2d_obs_mapping))
-            print(json.dumps(stations_dict_for_obs))
             obs1_station_id = str(flo2d_obs_mapping.get(cell_id)[0])
             obs2_station_id = str(flo2d_obs_mapping.get(cell_id)[1])
             obs3_station_id = str(flo2d_obs_mapping.get(cell_id)[2])
-            print('obs1_station_id', obs1_station_id)
 
             obs_timeseries = []
 
             if timestep == 5:
                 if obs1_station_id != str(-1):
-                    print("inside")
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
-
-                    print(obs1_hash_id)
 
                     ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
                                                    end_time=end_time)
 
-                    print(ts)
                     if ts is not None and len(ts) > 1:
                         obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                         # obs_start = ts[-1][0]
@@ -249,11 +242,14 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                                     expected_start= obs_start
                                 obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
             elif timestep == 15:
+                print("inside")
                 if obs1_station_id != str(-1):
+                    print(obs1_station_id)
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
 
                     ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
                                                     end_time=end_time)
+                    print(ts)
                     if ts is not None and len(ts) > 1:
                         obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                         # obs_start = ts[-1][0]
