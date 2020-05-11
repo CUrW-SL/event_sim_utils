@@ -198,9 +198,9 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             print("grid_id:", cell_id)
             print("grid map:", flo2d_obs_mapping.get(cell_id))
-            obs1_station_id = str(flo2d_obs_mapping.get(cell_id)[0])
-            obs2_station_id = str(flo2d_obs_mapping.get(cell_id)[1])
-            obs3_station_id = str(flo2d_obs_mapping.get(cell_id)[2])
+            obs1_station_id = flo2d_obs_mapping.get(cell_id)[0]
+            obs2_station_id = flo2d_obs_mapping.get(cell_id)[1]
+            obs3_station_id = flo2d_obs_mapping.get(cell_id)[2]
 
             obs_timeseries = []
 
@@ -246,9 +246,6 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 if obs1_station_id != str(-1):
                     print(obs1_station_id)
                     print("type: obs1_station_id", type(obs1_station_id))
-                    for key in stations_dict_for_obs.keys():
-                        print("type: stations dict key", type(key))
-                    print(json.dumps(stations_dict_for_obs))
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
                     print(obs1_hash_id)
                     ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
