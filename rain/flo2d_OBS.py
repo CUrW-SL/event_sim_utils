@@ -4,6 +4,7 @@ import operator
 import collections
 import traceback
 import os, getopt, sys
+import json
 from datetime import datetime, timedelta
 
 from math import acos, cos, sin, radians
@@ -197,6 +198,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             print("grid_id:", cell_id)
             print("grid map:", flo2d_obs_mapping.get(cell_id))
+            print(json.dumps(flo2d_obs_mapping))
+            print(json.dumps(stations_dict_for_obs))
             obs1_station_id = str(flo2d_obs_mapping.get(cell_id)[0])
             obs2_station_id = str(flo2d_obs_mapping.get(cell_id)[1])
             obs3_station_id = str(flo2d_obs_mapping.get(cell_id)[2])
@@ -205,6 +208,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             if timestep == 5:
                 if obs1_station_id != str(-1):
+                    print("inside")
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
 
                     print(obs1_hash_id)
