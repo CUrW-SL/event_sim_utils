@@ -16,7 +16,7 @@ from db_adapter.constants import connection as con_params
 from db_adapter.base import get_Pool, destroy_Pool
 from db_adapter.curw_sim.grids import get_flo2d_cells_to_wrf_grid_mappings, get_flo2d_cells_to_obs_grid_mappings
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
-from db_adapter.curw_sim.common import  \
+from db_adapter.curw_sim.common import process_continuous_ts, \
     process_5_min_ts, process_15_min_ts, fill_missing_values, \
     extract_obs_rain_5_min_ts, extract_obs_rain_15_min_ts
 from db_adapter.curw_sim.grids import GridInterpolationEnum
@@ -28,36 +28,6 @@ from db_adapter.logger import logger
 
 DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 ROOT_DIR = '/home/curw/event_sim_utils'
-
-def process_continuous_ts(original_ts, expected_start, filling_value, timestep):
-    """
-
-    :param original_ts: original timeseries to be processed : list of [time, value] pairs
-    :param expected_start: expected start of the output timeseries
-    :param filling_value: value that should be assigned for missing data
-    :param timestep: expected time step in minutes of the output timeseries
-    :return: timeseries as list of [time, value] pairs
-    """
-
-    processed_ts = []
-
-    current_timestamp = expected_start
-    original_ts_index = 0
-
-
-    while original_ts_index < len(original_ts):
-        print("db adapter type: original ts ", original_ts[original_ts_index][0], type(original_ts[original_ts_index][0]))
-        if current_timestamp == original_ts[original_ts_index][0]:
-            processed_ts.append(original_ts[original_ts_index])
-            original_ts_index +=1
-            current_timestamp = current_timestamp + timedelta(minutes=timestep)
-        elif current_timestamp < original_ts[original_ts_index][0]:
-            processed_ts.append([current_timestamp, filling_value])
-            current_timestamp = current_timestamp + timedelta(minutes=timestep)
-        else:
-            original_ts_index +=1
-
-    return processed_ts
 
 
 def check_time_format(time, model):
@@ -315,10 +285,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             print("### obs timeseries length ###", len(obs_timeseries))
             if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
-                obs_timeseries.append([end_time, 0])
+                obs_timeseries.append([datetime.strptime(end_time, DATE_TIME_FORMAT), 0])
 
-            print("type: original ts ", type(obs_timeseries[1][0]))
-            print("type: start time after striptime ", type(datetime.strptime(start_time, DATE_TIME_FORMAT)))
             final_ts = process_continuous_ts(original_ts=obs_timeseries,
                                              expected_start=datetime.strptime(start_time, DATE_TIME_FORMAT),
                                              filling_value=0, timestep=timestep)
