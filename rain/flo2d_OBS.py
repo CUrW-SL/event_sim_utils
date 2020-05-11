@@ -179,7 +179,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
             obs_stations=active_obs_stations, flo2d_model=flo2d_model)
 
-        for flo2d_index in range(1):
+        for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
             lon = flo2d_grids[flo2d_index][1]
             cell_id = flo2d_grids[flo2d_index][0]
