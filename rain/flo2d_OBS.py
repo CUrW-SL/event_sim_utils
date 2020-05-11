@@ -281,7 +281,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                     obs_timeseries[i][1] = 0
 
             print("#########", obs_timeseries)
-            if obs_timeseries[-1][0] != end_time:
+            if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
                 obs_timeseries.append([end_time, 0])
 
             final_ts = process_continuous_ts(original_ts=obs_timeseries, expected_start=start_time, filling_value=0, timestep=timestep)
