@@ -178,7 +178,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
             obs_stations=active_obs_stations, flo2d_model=flo2d_model)
 
-        for flo2d_index in range(len(flo2d_grids)):
+        for flo2d_index in range(1):
             lat = flo2d_grids[flo2d_index][2]
             lon = flo2d_grids[flo2d_index][1]
             cell_id = flo2d_grids[flo2d_index][0]
@@ -207,8 +207,12 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 if obs1_station_id != str(-1):
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
 
+                    print(obs1_hash_id)
+
                     ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
                                                    end_time=end_time)
+
+                    print(ts)
                     if ts is not None and len(ts) > 1:
                         obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                         # obs_start = ts[-1][0]
@@ -280,7 +284,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 if obs_timeseries[i][1] == -99999:
                     obs_timeseries[i][1] = 0
 
-            print("#########", obs_timeseries)
+            print("### obs timeseries length ###", len(obs_timeseries))
             if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
                 obs_timeseries.append([end_time, 0])
 
