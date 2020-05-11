@@ -40,15 +40,13 @@ def process_continuous_ts(original_ts, expected_start, filling_value, timestep):
     """
 
     processed_ts = []
-    print("db adapter type: original ts ", type(original_ts[1][0]))
-    print("db adapter type: expected_start ", type(expected_start))
 
     current_timestamp = expected_start
     original_ts_index = 0
 
-    print("db adapter type: current_timestamp", current_timestamp)
 
     while original_ts_index < len(original_ts):
+        print("db adapter type: original ts ", original_ts[original_ts_index][0], type(original_ts[original_ts_index][0]))
         if current_timestamp == original_ts[original_ts_index][0]:
             processed_ts.append(original_ts[original_ts_index])
             original_ts_index +=1
@@ -58,8 +56,6 @@ def process_continuous_ts(original_ts, expected_start, filling_value, timestep):
             current_timestamp = current_timestamp + timedelta(minutes=timestep)
         else:
             original_ts_index +=1
-
-        print("db adapter type: current_timestamp", type(current_timestamp))
 
     return processed_ts
 
