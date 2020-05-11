@@ -195,11 +195,11 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 meta_data['id'] = tms_id
                 TS.insert_run(meta_data=meta_data)
 
-            print("grid_id:", meta_data['grid_id'])
-            print("grid map:", flo2d_obs_mapping.get(meta_data['grid_id']))
-            obs1_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[0])
-            obs2_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[1])
-            obs3_station_id = str(flo2d_obs_mapping.get(meta_data['grid_id'])[2])
+            print("grid_id:", cell_id)
+            print("grid map:", flo2d_obs_mapping.get(cell_id))
+            obs1_station_id = str(flo2d_obs_mapping.get(cell_id)[0])
+            obs2_station_id = str(flo2d_obs_mapping.get(cell_id)[1])
+            obs3_station_id = str(flo2d_obs_mapping.get(cell_id)[2])
 
             obs_timeseries = []
 
