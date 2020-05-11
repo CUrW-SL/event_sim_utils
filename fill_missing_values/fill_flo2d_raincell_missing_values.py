@@ -122,19 +122,29 @@ def fill_missing_obs_with_0s(start, end, model, method):
 
             if count < expected_count:
                 print(id)
+                available_ts = []
+                with connection.cursor() as cursor4:
+                    sql_statement = "select * from `data` where id=%s and `time`>%s and `time`<=%s;"
+                    cursor4.execute(sql_statement, (id, start, end))
+                    for result in cursor4:
+                        if result.get('value') is not None:
+                            available_ts.append(result.get('time'))
+
                 timestamp = start
                 while timestamp <= end:
-                    try:
-                        with connection.cursor() as cursor3:
-                            sql_statement = "INSERT INTO `data` (`id`,`time`,`value`) VALUES (%s,%s,%s);"
-                            cursor3.execute(sql_statement, (id, timestamp, 0))
-                        connection.commit()
-                        print(timestamp)
-                    except pymysql.err.IntegrityError as ie:
-                        connection.rollback()
-                    except Exception as e:
-                        connection.rollback()
-                        traceback.print_exc()
+
+                    if timestamp not in available_ts:
+                        try:
+                            with connection.cursor() as cursor3:
+                                sql_statement = "INSERT INTO `data` (`id`,`time`,`value`) VALUES (%s,%s,%s);"
+                                cursor3.execute(sql_statement, (id, timestamp, 0))
+                            connection.commit()
+                            print(timestamp)
+                        except pymysql.err.IntegrityError as ie:
+                            connection.rollback()
+                        except Exception as e:
+                            connection.rollback()
+                            traceback.print_exc()
 
                     timestamp = timestamp + timedelta(minutes=timestep)
 
