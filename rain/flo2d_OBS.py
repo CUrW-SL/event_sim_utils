@@ -245,6 +245,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 print("inside")
                 if obs1_station_id != str(-1):
                     print(obs1_station_id)
+                    print("type: obs1_station_id", type(obs1_station_id))
+                    print("type: stations dict key", type(stations_dict_for_obs.keys()[0]))
                     print(json.dumps(stations_dict_for_obs))
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
                     print(obs1_hash_id)
