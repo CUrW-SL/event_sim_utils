@@ -280,6 +280,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 if obs_timeseries[i][1] == -99999:
                     obs_timeseries[i][1] = 0
 
+            print("#########", obs_timeseries)
             if obs_timeseries[-1][0] != end_time:
                 obs_timeseries.append([end_time, 0])
 
