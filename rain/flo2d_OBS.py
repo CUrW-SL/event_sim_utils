@@ -242,14 +242,12 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                                     expected_start= obs_start
                                 obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
             elif timestep == 15:
-                print("inside")
                 if obs1_station_id != str(-1):
-                    print(obs1_station_id)
                     obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
-                    print(obs1_hash_id)
+
                     ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
                                                     end_time=end_time)
-                    print(ts)
+
                     if ts is not None and len(ts) > 1:
                         obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
                         # obs_start = ts[-1][0]
@@ -289,6 +287,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
                 obs_timeseries.append([end_time, 0])
 
+            print("type: original ts ", type(obs_timeseries[1][0]))
+            print("type: start time after striptime ", type(datetime.strptime(start_time, DATE_TIME_FORMAT)))
             final_ts = process_continuous_ts(original_ts=obs_timeseries,
                                              expected_start=datetime.strptime(start_time, DATE_TIME_FORMAT),
                                              filling_value=0, timestep=timestep)
