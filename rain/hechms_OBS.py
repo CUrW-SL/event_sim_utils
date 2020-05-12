@@ -38,6 +38,38 @@ def check_time_format(time):
         exit(1)
 
 
+def extract_active_curw_obs_rainfall_stations(start_time, end_time):
+    """
+        Extract currently active (active within last week) rainfall obs stations
+        :return:
+        """
+    # Connect to the database
+    pool = get_Pool(host=con_params.CURW_OBS_HOST, port=con_params.CURW_OBS_PORT, user=con_params.CURW_OBS_USERNAME,
+                    password=con_params.CURW_OBS_PASSWORD, db=con_params.CURW_OBS_DATABASE)
+
+    obs_stations = [['hash_id', 'station_id', 'station_name', 'latitude', 'longitude']]
+
+    connection = pool.connection()
+
+    try:
+
+        with connection.cursor() as cursor1:
+            cursor1.callproc('getActiveRfStationsAtGivenTime', (start_time, end_time))
+            results = cursor1.fetchall()
+
+            for result in results:
+                obs_stations.append([result.get('hash_id'), result.get('station_id'), result.get('station_name'),
+                                     result.get('latitude'), result.get('longitude')])
+
+        return obs_stations
+
+    except Exception as ex:
+        traceback.print_exc()
+    finally:
+        connection.close()
+        destroy_Pool(pool)
+
+
 # for bulk insertion for a given one grid interpolation method
 def update_rainfall_obs(target_model, method, timestep, start_time, end_time):
 
@@ -66,7 +98,7 @@ def update_rainfall_obs(target_model, method, timestep, start_time, end_time):
         TS = Timeseries(pool=curw_sim_pool)
 
         # [hash_id, station_id, station_name, latitude, longitude]
-        active_obs_stations = read_csv('grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv')
+        active_obs_stations = extract_active_curw_obs_rainfall_stations(start_time=start_time, end_time=end_time)[1:]
         obs_stations_dict = { }  # keys: obs station id , value: [hash id, name, latitude, longitude]
 
         for obs_index in range(len(active_obs_stations)):
@@ -175,10 +207,6 @@ if __name__=="__main__":
         else:
             check_time_format(time=end_time)
 
-
-        # find active curw weather stations during the specified time window
-        os.system("./grids/obs_stations/rainfall/update_active_curw_rainfall_stations.py -s {} -e {}"
-                  .format(start_time, end_time))
 
         print("{} : ####### Insert grid based obs rainfall for hechms.".format(datetime.now()))
         update_rainfall_obs(target_model=HecHMS, method=method, timestep=5,
