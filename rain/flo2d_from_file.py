@@ -329,7 +329,7 @@ def usage():
     -h  --help          Show usage
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
     -M  --method        Rain interpolation method ("BC"-Bias Corrected, "MME"-Multi Model Ensemble, "FF"-From File). Default is FF.
-    -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "MDPA".
+    -g  --grid_tag      Grid mapping method (e.g: "MDPA", "TP"). Default is "TP".
     -f  --file          Path to the CSV file containing the rainfall data (e.g: "/home/uwcc-admin/event_sim_utils/corrected_rf.csv")
     """
     # -s  --start_time    Rain timeseries start time (e.g: "2019-06-05 00:00:00"). Default is 23:30:00, 3 days before today.
@@ -347,7 +347,7 @@ if __name__=="__main__":
         # end_time = None
         flo2d_model = None
         method = "FF"
-        grid_tag = "MDPA"  # note - grid tag "TP" has not handled yet
+        grid_tag = "TP"  # note - grid tag "MDPA" has not handled yet
         file_path = None
 
         try:
