@@ -196,6 +196,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             obs_df = pd.merge(obs_df, ts_df, how="left", on='time')
 
+        obs_df['time'] = pd.to_datetime(obs_df['time'], format=DATE_TIME_FORMAT)
+
         obs_df.set_index('time', inplace=True)
         obs_df['0'] = 0
         if timestep == 15:
