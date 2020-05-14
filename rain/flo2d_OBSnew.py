@@ -240,8 +240,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             final_ts_df['time'] = final_ts_df['time'].dt.strftime(DATE_TIME_FORMAT)
             final_ts = final_ts_df.values.tolist()
 
-            print("### obs timeseries length ###", len(final_ts))
-            print(final_ts)
+            print("obs ts length:", len(final_ts))
 
             if final_ts is not None and len(final_ts) > 0:
                 TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
