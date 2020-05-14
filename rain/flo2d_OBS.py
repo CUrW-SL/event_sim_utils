@@ -4,6 +4,8 @@ import operator
 import collections
 import traceback
 import os, getopt, sys
+import pandas as pd
+import numpy as np
 import json
 from datetime import datetime, timedelta
 
@@ -17,7 +19,7 @@ from db_adapter.base import get_Pool, destroy_Pool
 from db_adapter.curw_sim.grids import get_flo2d_cells_to_wrf_grid_mappings, get_flo2d_cells_to_obs_grid_mappings
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
 from db_adapter.curw_sim.common import process_continuous_ts, \
-    process_5_min_ts, process_15_min_ts, fill_missing_values, \
+    process_5_min_ts, process_15_min_ts, \
     extract_obs_rain_5_min_ts, extract_obs_rain_15_min_ts
 from db_adapter.curw_sim.grids import GridInterpolationEnum
 from db_adapter.curw_sim.timeseries import MethodEnum
@@ -49,6 +51,10 @@ def check_time_format(time, model):
         traceback.print_exc()
         print("Time {} is not in proper format".format(time))
         exit(1)
+
+
+def list_of_lists_to_df_first_row_as_columns(data):
+    return pd.DataFrame.from_records(data[1:], columns=data[0])
 
 
 # extract curw active rainfall stations within a given perios
@@ -123,9 +129,8 @@ def find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv, obs_station
             if count < 3 and sorted_distances.get(key) <= 25:
                 flo2d_obs_mapping.append(key)
                 count += 1
-            elif count < 3:
-                flo2d_obs_mapping.append("-1")
-                count += 1
+            else:
+                break
 
         # print(flo2d_obs_mapping)
         flo2d_obs_mapping_dict[grid_id] = flo2d_obs_mapping
@@ -147,7 +152,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
     :return:
     """
 
-    obs_start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+    # obs_start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
 
     try:
 
@@ -179,6 +184,23 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             flo2d_stations_csv=os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)),
             obs_stations=active_obs_stations, flo2d_model=flo2d_model)
 
+        # retrieve observed timeseries
+        obs_df = pd.DataFrame()
+        obs_df['time'] = pd.date_range(start=start_time, end=end_time, freq='5min')
+
+        for obs_id in stations_dict_for_obs.keys():
+            ts = TS.get_timeseries(id_=stations_dict_for_obs.get(obs_id), start_date=start_time, end_date=end_time)
+            ts.insert(0, ['time', obs_id])
+            ts_df = list_of_lists_to_df_first_row_as_columns(ts)
+            ts_df[obs_id] = ts_df[obs_id].astype('float64')
+
+            obs_df = pd.merge(obs_df, ts_df, how="left", on='time')
+
+        obs_df.set_index('time', inplace=True)
+        obs_df['0'] = 0
+        if timestep == 15:
+            obs_df = obs_df.resample('15min', label='right', closed='right').sum()
+
         for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
             lon = flo2d_grids[flo2d_index][1]
@@ -198,98 +220,27 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
             print("grid_id:", cell_id)
             print("grid map:", flo2d_obs_mapping.get(cell_id))
-            obs1_station_id = flo2d_obs_mapping.get(cell_id)[0]
-            obs2_station_id = flo2d_obs_mapping.get(cell_id)[1]
-            obs3_station_id = flo2d_obs_mapping.get(cell_id)[2]
+            obs_station_ids = flo2d_obs_mapping.get(cell_id)
 
-            obs_timeseries = []
+            if len(obs_station_ids) == 1:
+                obs_ts_df = obs_df[obs_station_ids].to_frame(name='final')
+            elif len(obs_station_ids) == 2:
+                obs_ts_df = obs_df[obs_station_ids]
+                obs_ts_df[obs_station_ids[0]] = obs_ts_df[obs_station_ids[0]].fillna(obs_ts_df[obs_station_ids[1]])
+                obs_ts_df['final'] = obs_ts_df[obs_station_ids[0]]
+            elif len(obs_station_ids) == 3:
+                obs_ts_df = obs_df[obs_station_ids]
+                obs_ts_df[obs_station_ids[1]] = obs_ts_df[obs_station_ids[1]].fillna(obs_ts_df[obs_station_ids[2]])
+                obs_ts_df[obs_station_ids[0]] = obs_ts_df[obs_station_ids[0]].fillna(obs_ts_df[obs_station_ids[1]])
+                obs_ts_df['final'] = obs_ts_df[obs_station_ids[0]]
+            else:
+                obs_ts_df = obs_df['0'].to_frame(name='final')
 
-            if timestep == 5:
-                if obs1_station_id != str(-1):
-                    obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
+            final_ts_df = obs_ts_df['final'].reset_index()
+            final_ts_df['time'] = final_ts_df['time'].dt.strftime(DATE_TIME_FORMAT)
+            final_ts = final_ts_df.values.tolist()
 
-                    ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
-                                                   end_time=end_time)
-
-                    if ts is not None and len(ts) > 1:
-                        obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
-                        # obs_start = ts[-1][0]
-
-                    if obs2_station_id != str(-1):
-                        obs2_hash_id = stations_dict_for_obs.get(obs2_station_id)
-
-                        ts2 = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs2_hash_id,
-                                                        end_time=end_time)
-                        if ts2 is not None and len(ts2) > 1:
-                            obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts2, OBS_TS=obs_timeseries)
-                            if obs_timeseries is not None and len(obs_timeseries) > 0:
-                                expected_start = obs_timeseries[-1][0]
-                            else:
-                                expected_start= obs_start
-                            obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts2, expected_start=expected_start)[1:])
-                            # obs_start = ts2[-1][0]
-
-                        if obs3_station_id != str(-1):
-                            obs3_hash_id = stations_dict_for_obs.get(obs3_station_id)
-
-                            ts3 = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs3_hash_id,
-                                                            end_time=end_time)
-                            if ts3 is not None and len(ts3) > 1 and len(obs_timeseries) > 0:
-                                obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts3, OBS_TS=obs_timeseries)
-                                if obs_timeseries is not None:
-                                    expected_start = obs_timeseries[-1][0]
-                                else:
-                                    expected_start= obs_start
-                                obs_timeseries.extend(process_5_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
-            elif timestep == 15:
-                if obs1_station_id != str(-1):
-                    obs1_hash_id = stations_dict_for_obs.get(obs1_station_id)
-
-                    ts = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs1_hash_id,
-                                                    end_time=end_time)
-
-                    if ts is not None and len(ts) > 1:
-                        obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts, expected_start=obs_start)[1:])
-                        # obs_start = ts[-1][0]
-
-                    if obs2_station_id != str(-1):
-                        obs2_hash_id = stations_dict_for_obs.get(obs2_station_id)
-
-                        ts2 = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs2_hash_id,
-                                                         end_time=end_time)
-                        if ts2 is not None and len(ts2) > 1:
-                            obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts2, OBS_TS=obs_timeseries)
-                            if obs_timeseries is not None and len(obs_timeseries) > 0:
-                                expected_start = obs_timeseries[-1][0]
-                            else:
-                                expected_start = obs_start
-                            obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts2, expected_start=expected_start)[1:])
-                            # obs_start = ts2[-1][0]
-
-                        if obs3_station_id != str(-1):
-                            obs3_hash_id = stations_dict_for_obs.get(obs3_station_id)
-
-                            ts3 = extract_obs_rain_15_min_ts(connection=curw_obs_connection, start_time=obs_start, id=obs3_hash_id,
-                                                             end_time=end_time)
-                            if ts3 is not None and len(ts3) > 1 and len(obs_timeseries) > 0:
-                                obs_timeseries = fill_missing_values(newly_extracted_timeseries=ts3, OBS_TS=obs_timeseries)
-                                if obs_timeseries is not None:
-                                    expected_start = obs_timeseries[-1][0]
-                                else:
-                                    expected_start = obs_start
-                                obs_timeseries.extend(process_15_min_ts(newly_extracted_timeseries=ts3, expected_start=expected_start)[1:])
-
-            for i in range(len(obs_timeseries)):
-                if obs_timeseries[i][1] == -99999:
-                    obs_timeseries[i][1] = 0
-
-            print("### obs timeseries length ###", len(obs_timeseries))
-            if obs_timeseries is not None and len(obs_timeseries) > 0 and obs_timeseries[-1][0] != end_time:
-                obs_timeseries.append([datetime.strptime(end_time, DATE_TIME_FORMAT), 0])
-
-            final_ts = process_continuous_ts(original_ts=obs_timeseries,
-                                             expected_start=datetime.strptime(start_time, DATE_TIME_FORMAT),
-                                             filling_value=0, timestep=timestep)
+            print("obs ts length:", len(final_ts))
 
             if final_ts is not None and len(final_ts) > 0:
                 TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
