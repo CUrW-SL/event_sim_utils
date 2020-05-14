@@ -142,6 +142,7 @@ def fill_missing_obs_with_0s(start, end, model, method):
                             print(timestamp)
                         except pymysql.err.IntegrityError as ie:
                             connection.rollback()
+                            print("Values Exist")
                         except Exception as e:
                             connection.rollback()
                             traceback.print_exc()
