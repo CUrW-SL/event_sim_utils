@@ -71,18 +71,15 @@ def clear_database(curw_sim_pool, method, model):
 
 
 # extract curw active rainfall stations within a given perios
-def extract_active_curw_obs_rainfall_stations(start_time, end_time):
+def extract_active_curw_obs_rainfall_stations(curw_obs_pool, start_time, end_time):
     """
         Extract currently active (active within last week) rainfall obs stations
         :return:
         """
-    # Connect to the database
-    pool = get_Pool(host=con_params.CURW_OBS_HOST, port=con_params.CURW_OBS_PORT, user=con_params.CURW_OBS_USERNAME,
-                    password=con_params.CURW_OBS_PASSWORD, db=con_params.CURW_OBS_DATABASE)
 
     obs_stations = [['hash_id', 'station_id', 'station_name', 'latitude', 'longitude']]
 
-    connection = pool.connection()
+    connection = curw_obs_pool.connection()
 
     try:
 
@@ -100,7 +97,7 @@ def extract_active_curw_obs_rainfall_stations(start_time, end_time):
         traceback.print_exc()
     finally:
         connection.close()
-        destroy_Pool(pool)
+        destroy_Pool(curw_obs_pool)
 
 
 # map nearest observational stations to flo2d grids
@@ -173,7 +170,7 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
 
         # [hash_id, station_id, station_name, latitude, longitude]
         # active_obs_stations = read_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'))
-        active_obs_stations = extract_active_curw_obs_rainfall_stations(start_time=start_time, end_time=end_time)[1:]
+        active_obs_stations = extract_active_curw_obs_rainfall_stations(curw_obs_pool=curw_obs_pool, start_time=start_time, end_time=end_time)[1:]
         flo2d_grids = read_csv(os.path.join(ROOT_DIR,'grids/flo2d/{}m.csv'.format(flo2d_model)))  # [Grid_ ID, X(longitude), Y(latitude)]
 
         stations_dict_for_obs = { }  # keys: obs station id , value: hash id
