@@ -1,4 +1,5 @@
 #!/home/curw/event_sim_utils/venv/bin/python3
+"""clear database before insertion"""
 
 import sys
 import getopt
