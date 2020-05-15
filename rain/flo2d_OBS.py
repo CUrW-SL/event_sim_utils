@@ -21,6 +21,8 @@ from db_adapter.curw_sim.grids import GridInterpolationEnum
 from db_adapter.curw_sim.timeseries import MethodEnum
 from db_adapter.curw_sim.constants import FLO2D_250, FLO2D_150, FLO2D_150_V2
 
+from db_adapter.curw_sim.common import DelTimeseries, get_curw_sim_hash_ids
+
 from db_adapter.logger import logger
 
 
@@ -51,6 +53,19 @@ def check_time_format(time, model):
 
 def list_of_lists_to_df_first_row_as_columns(data):
     return pd.DataFrame.from_records(data[1:], columns=data[0])
+
+
+def clear_database(curw_sim_pool, method, model):
+    print("clearing  database ... ")
+    run_table = "run"
+    data_table = "data"
+
+    hash_ids = get_curw_sim_hash_ids(pool=curw_sim_pool, run_table=run_table, model=model, method=method,
+                                     obs_end_start=None, obs_end_end=None, grid_id=None)
+    DTS = DelTimeseries(pool=curw_sim_pool, run_table=run_table, data_table=data_table)
+    DTS.bulk_delete_all_by_hash_id(ids=hash_ids)
+
+    print("database cleared !")
 
 
 # extract curw active rainfall stations within a given perios
@@ -137,7 +152,7 @@ def find_nearest_obs_stations_for_flo2d_stations(flo2d_stations_csv, obs_station
     return flo2d_obs_mapping_dict
 
 # for bulk insertion for a given one grid interpolation method
-def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start_time, end_time):
+def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_interpolation, timestep, start_time, end_time):
 
     """
     Update rainfall observations for flo2d models
@@ -152,16 +167,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
 
     try:
 
-        # Connect to the database
-        curw_obs_pool = get_Pool(host=con_params.CURW_OBS_HOST, user=con_params.CURW_OBS_USERNAME,
-                                 password=con_params.CURW_OBS_PASSWORD,
-                                 port=con_params.CURW_OBS_PORT, db=con_params.CURW_OBS_DATABASE)
-
         curw_obs_connection = curw_obs_pool.connection()
-
-        curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
-                                 password=con_params.CURW_SIM_PASSWORD,
-                                 port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
 
         TS = Sim_Timeseries(pool=curw_sim_pool)
 
@@ -214,8 +220,8 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
                 meta_data['id'] = tms_id
                 TS.insert_run(meta_data=meta_data)
 
+            print(datetime.now().strftime(DATE_TIME_FORMAT))
             print("grid_id:", cell_id)
-            print("grid map:", flo2d_obs_mapping.get(cell_id))
             obs_station_ids = flo2d_obs_mapping.get(cell_id)
 
             if len(obs_station_ids) == 1:
@@ -235,8 +241,6 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             final_ts_df = obs_ts_df['final'].reset_index()
             final_ts_df['time'] = final_ts_df['time'].dt.strftime(DATE_TIME_FORMAT)
             final_ts = final_ts_df.values.tolist()
-
-            print("obs ts length:", len(final_ts))
 
             if final_ts is not None and len(final_ts) > 0:
                 TS.replace_data(timeseries=final_ts, tms_id=tms_id)
@@ -338,8 +342,19 @@ if __name__=="__main__":
         # 2. flo2d grids to d03 stations
         # os.system("{}/grid_maps/flo2d/update_flo2d_grid_maps.py -m {} -g {}".format(ROOT_DIR, flo2d_model, grid_interpolation))
 
+        curw_obs_pool = get_Pool(host=con_params.CURW_OBS_HOST, user=con_params.CURW_OBS_USERNAME,
+                                 password=con_params.CURW_OBS_PASSWORD,
+                                 port=con_params.CURW_OBS_PORT, db=con_params.CURW_OBS_DATABASE)
+
+        curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
+                                 password=con_params.CURW_SIM_PASSWORD,
+                                 port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
+
+        clear_database(curw_sim_pool=curw_sim_pool, method=method, model=flo2d_model)
+
         print("{} : ####### Insert obs rainfall for {} grids".format(datetime.now(), flo2d_model))
-        update_rainfall_obs(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
+        update_rainfall_obs(curw_obs_pool=curw_obs_pool, curw_sim_pool=curw_sim_pool,
+                            flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
                             timestep=timestep, start_time=start_time, end_time=end_time)
     except Exception as e:
         traceback.print_exc()
