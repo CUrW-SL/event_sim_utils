@@ -1,4 +1,5 @@
 #!/home/curw/event_sim_utils/venv/bin/python3
+"""update on duplicate key"""
 
 import sys
 import getopt
