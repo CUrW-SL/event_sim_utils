@@ -16,11 +16,7 @@ from db_adapter.csv_utils import read_csv
 from db_adapter.constants import set_db_config_file_path
 from db_adapter.constants import connection as con_params
 from db_adapter.base import get_Pool, destroy_Pool
-from db_adapter.curw_sim.grids import get_flo2d_cells_to_wrf_grid_mappings, get_flo2d_cells_to_obs_grid_mappings
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
-from db_adapter.curw_sim.common import process_continuous_ts, \
-    process_5_min_ts, process_15_min_ts, \
-    extract_obs_rain_5_min_ts, extract_obs_rain_15_min_ts
 from db_adapter.curw_sim.grids import GridInterpolationEnum
 from db_adapter.curw_sim.timeseries import MethodEnum
 from db_adapter.curw_sim.constants import FLO2D_250, FLO2D_150, FLO2D_150_V2
@@ -243,7 +239,7 @@ def update_rainfall_obs(flo2d_model, method, grid_interpolation, timestep, start
             print("obs ts length:", len(final_ts))
 
             if final_ts is not None and len(final_ts) > 0:
-                TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
+                TS.replace_data(timeseries=final_ts, tms_id=tms_id)
                 TS.update_latest_obs(id_=tms_id, obs_end=(final_ts[-1][1]))
 
     except Exception as e:
