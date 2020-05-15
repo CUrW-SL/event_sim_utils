@@ -1,4 +1,5 @@
 #!/home/curw/event_sim_utils/venv/bin/python3
+"""no use of pandas, update on duplicate key"""
 
 import operator
 import collections

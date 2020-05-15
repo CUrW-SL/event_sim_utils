@@ -1,4 +1,5 @@
 #!/home/curw/event_sim_utils/venv/bin/python3
+"""use of pandas, delete run entries for given model, method before insertion"""
 
 import operator
 import collections
