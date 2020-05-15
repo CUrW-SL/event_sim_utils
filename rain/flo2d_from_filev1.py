@@ -22,11 +22,14 @@ from db_adapter.csv_utils import read_csv
 from db_adapter.constants import set_db_config_file_path
 from db_adapter.constants import connection as con_params
 from db_adapter.base import get_Pool, destroy_Pool
+from db_adapter.curw_sim.grids import get_flo2d_cells_to_wrf_grid_mappings, get_flo2d_cells_to_obs_grid_mappings
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
+from db_adapter.curw_sim.common import convert_15_min_ts_to_5_mins_ts, append_value_for_timestamp, summed_timeseries, \
+    process_5_min_ts, process_15_min_ts, fill_missing_values, \
+    extract_obs_rain_5_min_ts, extract_obs_rain_15_min_ts
 from db_adapter.curw_sim.grids import GridInterpolationEnum
+from db_adapter.curw_sim.timeseries import MethodEnum
 from db_adapter.curw_sim.constants import FLO2D_250, FLO2D_150, FLO2D_150_V2
-
-from db_adapter.curw_sim.common import DelTimeseries, get_curw_sim_hash_ids
 
 from db_adapter.logger import logger
 
@@ -55,24 +58,11 @@ def check_time_format(time, model):
         exit(1)
 
 
-def clear_database(curw_sim_pool, method, model):
-    print("clearing  database ... ")
-    run_table = "run"
-    data_table = "data"
-
-    hash_ids = get_curw_sim_hash_ids(pool=curw_sim_pool, run_table=run_table, model=model, method=method,
-                                     obs_end_start=None, obs_end_end=None, grid_id=None)
-    DTS = DelTimeseries(pool=curw_sim_pool, run_table=run_table, data_table=data_table)
-    DTS.bulk_delete_all_by_hash_id(ids=hash_ids)
-
-    print("database cleared !")
-
 def find_nearest_stations_for_flo2d_grids(flo2d_grids_csv, stations_dict):
     """
-
     :param flo2d_stations_csv:
     :param stations_dict: key = point_name, value = [latitude,longitude]
-    :param flo2d_model: 
+    :param flo2d_model:
     :return:
     """
 
@@ -251,7 +241,7 @@ def divide_flo2d_grids_to_polygons(flo2d_model, polygons):
 
 
 # for bulk insertion for a given one grid interpolation method
-def update_rainfall_from_file(curw_sim_pool, flo2d_grid_polygon_map, stations_dict, rainfall_df, flo2d_model, method,
+def update_rainfall_from_file(flo2d_grid_polygon_map, stations_dict, rainfall_df, flo2d_model, method,
                               grid_interpolation, timestep, start_time=None, end_time=None):
 
     """
@@ -266,6 +256,11 @@ def update_rainfall_from_file(curw_sim_pool, flo2d_grid_polygon_map, stations_di
     # start = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
 
     try:
+
+        # Connect to the database
+        curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
+                                 password=con_params.CURW_SIM_PASSWORD,
+                                 port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
 
         TS = Sim_Timeseries(pool=curw_sim_pool)
 
@@ -326,10 +321,8 @@ def usage():
     -------------------------------------------------
     Populate rainfall Flo2D 250, 150 & 150_v2 :: FF
     -------------------------------------------------
-
     Usage: ./rain/flo2d_from_file.py [-m flo2d_XXX] [-M XXX] [-g XXXX] [-f <file_path>] 
     [-s "YYYY-MM-DD HH:MM:SS"] [-e "YYYY-MM-DD HH:MM:SS"]
-
     -h  --help          Show usage
     -m  --flo2d_model   FLO2D model (e.g. flo2d_250, flo2d_150). Default is flo2d_250.
     -M  --method        Rain interpolation method ("BC"-Bias Corrected, "MME"-Multi Model Ensemble, "FF"-From File). Default is FF.
@@ -429,13 +422,6 @@ if __name__=="__main__":
             points_dict['point_{}'.format(count)] = [index[0], index[1]]
             count += 1
 
-        # Connect to the database
-        curw_sim_pool = get_Pool(host=con_params.CURW_SIM_HOST, user=con_params.CURW_SIM_USERNAME,
-                                 password=con_params.CURW_SIM_PASSWORD,
-                                 port=con_params.CURW_SIM_PORT, db=con_params.CURW_SIM_DATABASE)
-
-        clear_database(curw_sim_pool=curw_sim_pool, method=method, model=flo2d_model)
-
         if grid_tag == "MDPA":
             print("{} : ####### Insert rainfall from file to {} grids".format(datetime.now(), flo2d_model))
             # update_rainfall_from_file(flo2d_model=flo2d_model, method=method, grid_interpolation=grid_interpolation,
@@ -454,7 +440,7 @@ if __name__=="__main__":
             flo2d_grid_polygon_map = divide_flo2d_grids_to_polygons(flo2d_model=flo2d_model, polygons=polygons)
 
             print("{} : ####### Insert rainfall from file to {} grids".format(datetime.now(), flo2d_model))
-            update_rainfall_from_file(curw_sim_pool=curw_sim_pool, flo2d_grid_polygon_map=flo2d_grid_polygon_map, stations_dict=points_dict,
+            update_rainfall_from_file(flo2d_grid_polygon_map=flo2d_grid_polygon_map, stations_dict=points_dict,
                                       rainfall_df=corrected_rf_df, flo2d_model=flo2d_model, method=method,
                                       grid_interpolation=grid_interpolation, timestep=timestep)
 
