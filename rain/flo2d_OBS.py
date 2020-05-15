@@ -243,7 +243,7 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
             final_ts = final_ts_df.values.tolist()
 
             if final_ts is not None and len(final_ts) > 0:
-                TS.replace_data(timeseries=final_ts, tms_id=tms_id)
+                TS.insert_data(timeseries=final_ts, tms_id=tms_id, upsert=True)
                 TS.update_latest_obs(id_=tms_id, obs_end=(final_ts[-1][1]))
 
     except Exception as e:
