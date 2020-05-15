@@ -20,6 +20,7 @@ from db_adapter.base import get_Pool, destroy_Pool
 from db_adapter.curw_sim.timeseries import Timeseries as Sim_Timeseries
 from db_adapter.curw_sim.grids import GridInterpolationEnum
 from db_adapter.curw_sim.timeseries import MethodEnum
+from db_adapter.curw_sim.common import extract_obs_rain_5_min_ts
 from db_adapter.curw_sim.constants import FLO2D_250, FLO2D_150, FLO2D_150_V2
 
 from db_adapter.curw_sim.common import DelTimeseries, get_curw_sim_hash_ids
@@ -170,8 +171,6 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
 
         curw_obs_connection = curw_obs_pool.connection()
 
-        TS = Sim_Timeseries(pool=curw_sim_pool)
-
         # [hash_id, station_id, station_name, latitude, longitude]
         # active_obs_stations = read_csv(os.path.join(ROOT_DIR,'grids/obs_stations/rainfall/curw_active_rainfall_obs_stations.csv'))
         active_obs_stations = extract_active_curw_obs_rainfall_stations(start_time=start_time, end_time=end_time)[1:]
@@ -192,7 +191,8 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
         obs_df['time'] = pd.date_range(start=start_time, end=end_time, freq='5min')
 
         for obs_id in stations_dict_for_obs.keys():
-            ts = TS.get_timeseries(id_=stations_dict_for_obs.get(obs_id), start_date=start_time, end_date=end_time)
+            ts = extract_obs_rain_5_min_ts(connection=curw_obs_connection, start_time=start_time,
+                                           id=stations_dict_for_obs.get(obs_id), end_time=end_time)
             ts.insert(0, ['time', obs_id])
             ts_df = list_of_lists_to_df_first_row_as_columns(ts)
             ts_df[obs_id] = ts_df[obs_id].astype('float64')
@@ -203,6 +203,8 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
         obs_df['0'] = 0
         if timestep == 15:
             obs_df = obs_df.resample('15min', label='right', closed='right').sum()
+
+        TS = Sim_Timeseries(pool=curw_sim_pool)
 
         for flo2d_index in range(len(flo2d_grids)):
             lat = flo2d_grids[flo2d_index][2]
