@@ -146,7 +146,7 @@ def update_rainfall_obs(target_model, method, timestep, start_time, end_time):
             #         obs_timeseries[i][1] = 0
 
             if obs_timeseries is not None and len(obs_timeseries) > 0:
-                TS.insert_data(timeseries=obs_timeseries, tms_id=tms_id, upsert=True)
+                TS.replace_data(timeseries=obs_timeseries, tms_id=tms_id)
 
     except Exception as e:
         traceback.print_exc()
