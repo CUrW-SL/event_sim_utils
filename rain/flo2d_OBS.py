@@ -238,6 +238,7 @@ def update_rainfall_obs(curw_obs_pool, curw_sim_pool, flo2d_model, method, grid_
             else:
                 obs_ts_df = obs_df['0'].to_frame(name='final')
 
+            obs_ts_df = obs_ts_df.fillna(0)
             final_ts_df = obs_ts_df['final'].reset_index()
             final_ts_df['time'] = final_ts_df['time'].dt.strftime(DATE_TIME_FORMAT)
             final_ts = final_ts_df.values.tolist()
